@@ -80,7 +80,7 @@ abstract class Env
     }
 }
 
-class EnvError extends Error
+class EnvError extends \Error
 {
 
     const OVERRIDE_PROTECTION = [

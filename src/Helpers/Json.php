@@ -51,7 +51,7 @@ class Json
     }
 }
 
-class JsonError extends Error
+class JsonError extends \Error
 {
 
     const ERROR_MESSAGE = 'Invalid Json Provided! Error Message: ';
