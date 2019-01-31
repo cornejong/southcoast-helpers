@@ -19,5 +19,7 @@
         "psr-0": {
             "SouthCoast": "src"
         }
-    }
+    },
+    "minimum-stability": "stable",
+    "license": "MIT"
 }
