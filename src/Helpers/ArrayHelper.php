@@ -209,4 +209,10 @@ class ArrayHelper
 
         return array_keys($array) !== range(0, count($array) - 1);
     }
+
+    public function recursiceCount(\Countable $array)
+    {
+        return count($array, COUNT_RECURSIVE);
+    }
+
 }
