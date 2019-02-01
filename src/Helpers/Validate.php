@@ -80,5 +80,4 @@ class Validate
         return in_array(false, $result) ? false : true;
     }
 
-
 }

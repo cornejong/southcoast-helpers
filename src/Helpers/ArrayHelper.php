@@ -210,7 +210,14 @@ class ArrayHelper
         return array_keys($array) !== range(0, count($array) - 1);
     }
 
-    public function recursiceCount(\Countable $array) : int
+    /**
+     * Counts all elements in an array recursivly
+     * Not only the top level elements in a multidimentional array
+     *
+     * @param \Countable $array
+     * @return integer
+     */
+    public function recursiveCount(\Countable $array) : int
     {
         return (int) count($array, COUNT_RECURSIVE);
     }
