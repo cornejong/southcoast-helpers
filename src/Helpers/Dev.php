@@ -89,7 +89,28 @@ class Dev
 
     public static function rainbowLog($message, bool $die = false)
     {
-        self::log(self::get_colored_string($message, self::getRandomColor(), self::getRandomColor()), $die);
+        foreach(str_split($message) as $char) {
+            $string .= self::get_colored_string($char, self::getRandomForgroundColor(), null);
+        }
+        self::log($string, $die);
+    }
+
+    public static function getRandomForgroundColor()
+    {
+        if (!isset(self::$background_colors) || self::$foreground_colors) {
+            self::setup_colors();
+        }
+
+        return array_keys(self::$foreground_colors)[rand(0, count(self::$foreground_colors) - 1)];
+    }
+
+    public static function getRandomBackgroundColor()
+    {
+        if (!isset(self::$background_colors) || self::$foreground_colors) {
+            self::setup_colors();
+        }
+
+        return array_keys(self::$background_colors)[rand(0, count(self::$background_colors) - 1)];
     }
 
     public static function get_colored_string(string $string, string $foreground_color = null, string $background_color = null)

@@ -12,4 +12,4 @@ Dev::log('X Some Error Log! Sh*t hit the fan!');
 Dev::log('- A notification! Please notice me :)');
 Dev::log('* Warming! Lets get to it!');
 
-Dev::log('^ Check this out!');
+Dev::rainbowLog('^ Check this out!');
