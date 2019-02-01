@@ -210,9 +210,9 @@ class ArrayHelper
         return array_keys($array) !== range(0, count($array) - 1);
     }
 
-    public function recursiceCount(\Countable $array)
+    public function recursiceCount(\Countable $array) : int
     {
-        return count($array, COUNT_RECURSIVE);
+        return (int) count($array, COUNT_RECURSIVE);
     }
 
 }
