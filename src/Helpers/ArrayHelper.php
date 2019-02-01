@@ -50,7 +50,7 @@ class ArrayHelper
      */
     public static function objectify(array $array) : StdClass
     {
-        return self::sanitize($data, false);
+        return self::sanitize($array, false);
     }
 
     /**
