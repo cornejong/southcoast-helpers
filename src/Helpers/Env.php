@@ -78,6 +78,16 @@ abstract class Env
     {
         return isset(self::$enviroment[$name]);
     }
+
+    public static function isDev() : bool
+    {
+        return self::$enviroment['dev'];
+    }
+
+    public static function isConsole() : bool
+    {
+        return (defined('STDIN')) ? true : false;
+    }
 }
 
 class EnvError extends \Error
