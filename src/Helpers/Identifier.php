@@ -20,5 +20,36 @@ abstract class Identifier
     {
         return uniqid((!is_null($prefix)) ? $prefix : '');
     }
+
+    final public static function newGuidInCollection(\Traverable $collection)
+    {
+        $guid = self::newGuid();
+
+        if(!is_array($collection)) {
+            ArrayHelper::sanitizer($collection);
+        }
+
+        if(in_array($guid, $collection)) {
+            return self::newGuidInCollection($collection);
+        }
+
+        return $guid;
+    }
+
+    final public static function newUniqIdInCollection(\Traverable$collection, string $prefix = null)
+    {
+        $uid = self::newUniqId($prefix);
+
+        if(!is_array($collection)) {
+            ArrayHelper::sanitizer($collection);
+        }
+
+        if(in_array($uid, $collection)) {
+            return self::newUniqIdInCollection($collection, $prefix);
+        }
+
+        return $uid;
+    }
+
 }
 
