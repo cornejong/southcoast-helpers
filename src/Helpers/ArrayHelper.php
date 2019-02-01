@@ -48,7 +48,7 @@ class ArrayHelper
      * @param array $array          The to be objectified Array
      * @return StdClass|object      The objectified resource
      */
-    public static function objectify(array $array) : StdClass
+    public static function objectify(array $array)
     {
         return self::sanitize($array, false);
     }
