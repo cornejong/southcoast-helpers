@@ -1,5 +1,0 @@
-<?php
-
-/* TODO: IMPLEMENT HELPER CLASS FOR DATA VALIDATION */
-
-/* USE: filter_var() */
