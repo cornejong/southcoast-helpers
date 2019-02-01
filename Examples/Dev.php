@@ -1,12 +1,15 @@
 <?php
-
-error_reporting(E_ALL);
-ini_set('display_errors', true);
-
 require '../src/helpers/Dev.php';
 
 use SouthCoast\Helpers\Dev;
 
 Dev::setDev(true);
 
-Dev::log('X === Some Error Occured!');
+Dev::log('Normal log');
+Dev::log('> Seperated log');
+Dev::log('$ Tab indented log');
+Dev::log('X Some Error Log! Sh*t hit the fan!');
+Dev::log('- A notification! Please notice me :)');
+Dev::log('* Warming! Lets get to it!');
+
+Dev::log('^ Check this out!');
