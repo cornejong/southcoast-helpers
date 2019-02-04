@@ -46,6 +46,10 @@ class Dev
             case '-':
                 $message = self::get_colored_string($message, 'white', 'blue');
                 break;
+
+            case '^':
+                $message = self::get_colored_string($message, 'white', 'green');
+                break;
         }
 
         print $message . "\n";
