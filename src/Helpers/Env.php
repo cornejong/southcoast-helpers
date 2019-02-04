@@ -60,12 +60,12 @@ abstract class Env
         return true;
     }
 
-    public static function __get(string $name)
+    public function __get(string $name)
     {
         return self::isset($name) ? self::$enviroment[$name] : void;
     }
 
-    public static function __set(string $name, $value) : void
+    public function __set(string $name, $value) : void
     {
         if(self::isset($name)) {
             throw new EnvError(EnvError::OVERRIDE_PROTECTION);
