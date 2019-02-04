@@ -60,7 +60,7 @@ abstract class Env
         return true;
     }
 
-    public function __get(string $name)
+/*     public function __get(string $name)
     {
         return self::isset($name) ? self::$enviroment[$name] : void;
     }
@@ -74,10 +74,10 @@ abstract class Env
         self::$enviroment[$name] = $value;
     }
 
-    public static function __isset(string $name) : bool
+    public function __isset(string $name) : bool
     {
         return isset(self::$enviroment[$name]);
-    }
+    } */
 
     public static function isDev() : bool
     {
