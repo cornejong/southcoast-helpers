@@ -78,7 +78,7 @@ class Dev
         self::$ENV_DEV = $isDev;
     }
 
-    public function setTempDirectory(string $path)
+    public static function setTempDirectory(string $path)
     {
         if(!file_exists($path)) {
             mkdir($path, 0700, true);
@@ -88,7 +88,7 @@ class Dev
     }
 
 
-    public function setTempExtention(string $ext)
+    public static function setTempExtention(string $ext)
     {
         self::$temp_extention = $ext;
     }
@@ -118,7 +118,7 @@ class Dev
     }
 
 
-    public function store(string $name, $data, $jsonEncode = false) 
+    public static function store(string $name, $data, $jsonEncode = false) 
     {
         if(!isset(self::$temp_directory)) {
             throw new \Exception('No Temporary direcotry provided!', 1);
