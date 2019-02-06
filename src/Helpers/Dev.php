@@ -13,6 +13,9 @@ class Dev
     private static $ENV_DEV;
     private static $ENV_CONSOLE;
 
+    private static $temp_directory;
+    private static $temp_extention = 'temp';
+
     public static function log($message, $die = false) : void
     {
         if (!self::isDev()) return;
@@ -75,6 +78,21 @@ class Dev
         self::$ENV_DEV = $isDev;
     }
 
+    public function setTempDirectory(string $path)
+    {
+        if(!file_exists($path)) {
+            mkdir($path, 0700, true);
+        }
+
+        self::$temp_directory = $path;
+    }
+
+
+    public function setTempExtention(string $ext)
+    {
+        self::$temp_extention = $ext;
+    }
+
     public static function logJson($data, bool $die = false) : void
     {
         if (!self::isDev()) return;
@@ -98,6 +116,17 @@ class Dev
         }
         self::log($string, $die);
     }
+
+
+    public function store(string $name, $data, $jsonEncode = false) 
+    {
+        if(!isset(self::$temp_directory)) {
+            throw new \Exception('No Temporary direcotry provided!', 1);
+        }
+
+        return (file_put_contents(self::$temp_directory . DIRECTORY_SEPARATOR . $name . '.' . self::$temp_extention, ($jsonEncode) ? Json::prettyEncode($data) : $data));
+    }
+
 
     public static function getRandomForgroundColor()
     {
