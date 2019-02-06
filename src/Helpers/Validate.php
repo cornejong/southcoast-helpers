@@ -6,11 +6,13 @@ namespace SouthCoast\Helpers;
 
 class Validate
 {
-    final public static function url(string $url) : bool
-    {
-        return (filter_var($url, FILTER_VALIDATE_URL) !== false) ? true : false;
-    }
+    const REQUIRE_URL_PATH = FILTER_FLAG_PATH_REQUIRED;
 
+    final public static function url(string $url, ...$flags) : bool
+    {
+        return (filter_var($url, FILTER_VALIDATE_URL, ...$flags) !== false) ? true : false;
+    }
+    
     final public static function urlSanitizer(string $url) : string
     {
         return filter_var($url, FILTER_SANITIZE_URL);
