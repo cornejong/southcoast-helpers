@@ -1,0 +1,26 @@
+{
+    "name": "southcoast/helpers",
+    "description": "A Collection of helper classes for PHP",
+    "type": "library",
+    "version": "1.0.0",
+    "keywords": ["log","logging", "Json", "Env", "Envoiroment", "Validation", "Identifier", "Array", "Helper", "Helpers", "Object"],
+    "homepage": "https://github.com/Seldaek/monolog",
+    "authors": [
+        {
+            "name": "Corné de Jong | SouthCoast",
+            "email": "corne@southcoast.tech",
+            "homepage": "http://southcoast.tech",
+            "role": "Developer & Engineer"
+        }
+    ],
+    "require": {
+        "php": ">=7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SouthCoast\\Helpers\\": "src/helpers/"
+        }
+    },
+    "minimum-stability": "stable",
+    "license": "MIT"
+}
