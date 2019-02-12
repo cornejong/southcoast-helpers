@@ -65,7 +65,7 @@ abstract class Env
         return self::isset($name) ? self::$enviroment[$name] : void;
     }
 
-    public function __set(string $name, $value) : void
+    public function __set(string $name, $value)
     {
         if(self::isset($name)) {
             throw new EnvError(EnvError::OVERRIDE_PROTECTION);

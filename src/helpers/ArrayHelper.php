@@ -230,11 +230,39 @@ class ArrayHelper
      * @param string $index
      * @param callable $callback
      * @param bool $returnObject = false
+     * @param bool $skipIfMissing = false
      * @return array
      */
-    public static function map(array $array, $index, callable $callback = null, bool $returnObject = false)
+    public static function map(array $array, string $index, callable $callback = null, bool $returnObject = false, bool $skipIfMissing = false)
     {
-        # code...
+        $tmp = [];
+
+        foreach($data as $key => $value) {
+            if(!is_null($callback) && is_callable($callback)) {
+                $tmp = $callback($value);
+                if(!empty($tmp) || !is_null($tmp)) {
+                    $value = $tmp;
+                }
+            }
+
+            if(!isset($value[$index])) {
+                if($skipIfMissing) {
+                    Dev::log('X Index not pressent in element with Key: '  . $key . '. Index: ' . $index);
+                    if(!isset($tmp['missing_'])) {
+                        $tmp['missing_'] = [$value];
+                    } else {
+                        $tmp['missing_'][] = $value;
+                    }
+                    continue;
+                } else {
+                    throw new \Error('Specified Index not pressent in array element with key: ' . $index, 1);
+                }
+            }
+            
+            $tmp[$value[$index]] = $value;
+        }
+
+        return $tmp;
     }
 
 
@@ -242,4 +270,11 @@ class ArrayHelper
     {
         # code...
     }
+
+
+    public static function manage()
+    {
+        # code...
+    }
+
 }

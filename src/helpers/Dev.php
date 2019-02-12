@@ -16,7 +16,7 @@ class Dev
     private static $temp_directory;
     private static $temp_extention = 'temp';
 
-    public static function log($message, $die = false) : void
+    public static function log($message, $die = false)
     {
         if (!self::isDev()) return;
 
@@ -175,7 +175,7 @@ class Dev
      * @method wait
      * @param $time_in_seconds
      */
-    public static function wait($time_in_seconds) : void
+    public static function wait($time_in_seconds)
     {
         usleep($time_in_seconds * 1000000);
     }
