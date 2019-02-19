@@ -18,6 +18,21 @@ namespace SouthCoast\Helpers;
  */
 class ArrayHelper
 {
+    const FLAT_QUERY_EXPRESSION_OPENER = '/^';
+    const FLAT_QUERY_EXPRESSION_CLOSER = '.*$/';
+
+    const FLAT_QUERY_EXPRESSION_WILDCARD = '(.*)';
+
+    const FLAT_QUERY_EXPRESSION_STRING_OPEN = '(';
+    const FLAT_QUERY_EXPRESSION_STRING_CLOSE = ')';
+
+    const FLAT_QUERY_EXPRESSION_NUMERIC_OPEN = '(\[';
+    const FLAT_QUERY_EXPRESSION_NUMERIC_CLOSE = '\])';
+
+    const FLAT_QUERY_EXPRESSION_SEPERATOR = '\.';
+
+
+
     /**
      * Sanitizes the provided data, mainly designed for cleaning up objects or classes
      *
@@ -95,6 +110,9 @@ class ArrayHelper
         $flat_array = self::flatten($array);
         $found = array_search($value, $flat_array, $strict);
 
+        print_r($found);
+        die();
+
         if(!$found) {
             return false;
         }
@@ -165,19 +183,19 @@ class ArrayHelper
     public static function makeArray(array $keys, $value)
     {
         $array = [];   
-        $index = array_shift($keys);
+        $index = (string) array_shift($keys);
         
-        if(!isset($keys[0])) {
+        if(count($keys) == 0){
             $array[$index] = $value;
         } else {   
             $array[$index] = self::makeArray($keys,$value);    
         }
-        
+    
         return $array;
     }
     
     
-    private static function rebuildArray(array $map) : array
+    public static function rebuildArray(array $map) : array
     {
         $array = [];
     
@@ -186,10 +204,9 @@ class ArrayHelper
         foreach($map as $key => $value) {
             $key_array = explode('.', $key);
             if(count($key_array) == 1) {
-                $array[$key] = $value;
+                $array["{$key}"] = $value;
             } else {
-                $value = self::makeArray($key_array, $value);
-                $array = array_merge_recursive($array, $value);
+                $array = array_merge_recursive($array, self::makeArray($key_array, $value));
             }
         }
         
@@ -199,6 +216,92 @@ class ArrayHelper
     public static function cleanupRebuild(array $array) : array
     {
         return json_decode(preg_replace('/(\[|\])/', '', json_encode($array)), true);
+    }
+
+    public static function get(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
+    {
+        $flat = self::flatten($array);
+
+        $pattern = self::buildFlatQueryExpression($query);
+        $tmp = [];
+
+        foreach ($flat as $key => $value) {
+            if(preg_match($pattern, $key, $matches)) {
+                if($subtractQuery) {
+                    $newKey = str_replace(self::buildFlatQueryString($query), '', $key);
+
+                    if($newKey != '' && $newKey[0] == '.') {
+                        $newKey = ltrim($newKey, '.');
+                    }
+
+                    $tmp[(empty($newKey)) ? : $newKey] = $value;
+
+                } else {
+                    $tmp[$key] = $value;
+                }  
+            }
+        }
+
+        if(empty($tmp)) {
+            return null;
+        }
+            
+        if(count($tmp) == 1) {
+            $key = array_keys($tmp)[0];
+            $rebuild = $tmp[$key];
+        } else {
+            $rebuild = self::rebuildArray($tmp);
+        }
+
+        return ($doRebuild) ? $rebuild : $tmp;
+    }
+
+    public static function getMultiple(array $array, ...$queries) {
+        $tmp = [];
+
+        foreach($queries as $query) {
+            $tmp = array_merge_recursive($tmp, self::get($query, $array, true, false));
+        }
+
+        return self::rebuildArray($tmp);
+    }
+
+    public static function buildFlatQueryString(string $query) : string
+    {
+        $string = '';
+
+        foreach(explode('.', $query) as $index => $i) {
+
+            if(is_numeric($i)) {
+                $i = '[' . $i . ']';
+            }
+
+            $string .= ($index == 0) ? $i : '.' . $i;
+        }
+
+        return $string;
+    }
+
+    public static function buildFlatQueryExpression(string $query) : string
+    {
+        $expression = self::FLAT_QUERY_EXPRESSION_OPENER;
+
+        foreach(explode('.', $query) as $index => $i) {
+
+            if(is_numeric($i)) {
+                $i = self::FLAT_QUERY_EXPRESSION_NUMERIC_OPEN . $i . self::FLAT_QUERY_EXPRESSION_NUMERIC_CLOSE;
+            } elseif($i == '?') {
+                $i = self::FLAT_QUERY_EXPRESSION_WILDCARD;
+            } else {
+                $i = self::FLAT_QUERY_EXPRESSION_STRING_OPEN . $i . self::FLAT_QUERY_EXPRESSION_STRING_CLOSE;
+            }
+
+            $expression .= ($index == 0) ? $i : self::FLAT_QUERY_EXPRESSION_SEPERATOR . $i;
+        }
+
+        $expression .= self::FLAT_QUERY_EXPRESSION_CLOSER;
+
+        return $expression;
     }
 
     public static function isAssoc(array $array)
@@ -223,7 +326,7 @@ class ArrayHelper
     }
 
     /**
-     * Maps the provided Array by the index
+     * indexes the provided Array by the index
      * Additionaliy you van provide a callable function 
      *
      * @param array $array
@@ -233,7 +336,7 @@ class ArrayHelper
      * @param bool $skipIfMissing = false
      * @return array
      */
-    public static function map(array $array, string $index, callable $callback = null, bool $returnObject = false, bool $skipIfMissing = false)
+    public static function index(array $array, string $index, callable $callback = null, bool $returnObject = false, bool $skipIfMissing = false)
     {
         $tmp = [];
 
@@ -266,9 +369,39 @@ class ArrayHelper
     }
 
 
-    public static function index(array $array, $index)
+    /**
+     * Maps the values of the $array to new keys
+     * Adds support for multidimentional arrays
+     * 
+     * $map = [
+     *      The KEY is the to be used key for the Array 
+     *      'field' is the value origin
+     *      'Name' => ['field' => 'name'],
+     *      Add 'value' to add custom value or value mutation
+     *      'Email' => ['field' => 'email', 'value' => 'Some Other Value'],
+     *      Add '.' seperators for sub objects
+     *      'Email.primary' => ['field' => 'email'],
+     *      Use '[0]' for arrays
+     *      'Addresses.[0].street' => ['field => 'address_1_line_1'],
+     *      Get a value from a multidimentional source
+     *      'isDefault' => ['field' => 'meta.system.default'],
+     *
+     * @param array $map
+     * @param array $array
+     * @return array
+     * 
+     * @todo add checks for keys and strict null allowing
+     */
+    public static function map(array $map, array $array, $strict = false)
     {
-        # code...
+        $array = self::flatten($array);
+
+        $tmp = [];
+        foreach($map as $key => $item) {
+            $tmp[$key] = (isset($item['value'])) ? $item['value'] : self::get($field, $array); // $array[$item['field']];
+        }
+
+        return self::rebuildArray($tmp);
     }
 
 
