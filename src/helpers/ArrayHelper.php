@@ -110,16 +110,19 @@ class ArrayHelper
         $flat_array = self::flatten($array);
         $found = array_search($value, $flat_array, $strict);
 
-        print_r($found);
-        die();
-
         if(!$found) {
             return false;
         }
 
-        $dove = self::arrayDive(explode('.', $found), $array);
+        return self::cleanUpFlatQueryString($found);
 
-        return self::cleanupRebuild($dove);
+        // $dove = self::arrayDive(explode('.', $found), $array);
+        // return self::cleanupRebuild($dove);
+    }
+
+    public static function cleanUpFlatQueryString(string $query)
+    {
+        return preg_replace('/\[(\d)\]/', '$1', $query);
     }
 
 
@@ -340,32 +343,30 @@ class ArrayHelper
     {
         $tmp = [];
 
-        foreach($data as $key => $value) {
-            if(!is_null($callback) && is_callable($callback)) {
-                $tmp = $callback($value);
-                if(!empty($tmp) || !is_null($tmp)) {
-                    $value = $tmp;
-                }
+        foreach ($array as $key => &$value) {
+            if (!is_null($callback) && is_callable($callback)) {
+                $callback($key, $value, $array);
             }
-
-            if(!isset($value[$index])) {
-                if($skipIfMissing) {
-                    Dev::log('X Index not pressent in element with Key: '  . $key . '. Index: ' . $index);
-                    if(!isset($tmp['missing_'])) {
-                        $tmp['missing_'] = [$value];
-                    } else {
-                        $tmp['missing_'][] = $value;
-                    }
-                    continue;
-                } else {
-                    throw new \Error('Specified Index not pressent in array element with key: ' . $index, 1);
-                }
-            }
-            
-            $tmp[$value[$index]] = $value;
         }
 
-        return $tmp;
+        foreach ($array as $key => $value) {
+            if (!isset($value[$index])) {
+                if ($skipIfMissing) {
+                    Dev::log('X Index not pressent in element with Key: '  . $key . '. Index: ' . $index);
+                    continue;
+                } else {
+                    throw new \Exception('Specified Index not pressent in array element with key: ' . $index, 1);
+                }
+            }
+
+            if (isset($tmp[$value[$index]])) {
+                $tmp[$value[$index]][] = $value;
+            } else {
+                $tmp[$value[$index]] = $value;
+            }
+        }
+
+        return ($returnObject) ? self::objectify($tmp) : self::sanitize($tmp);
     }
 
 
@@ -406,6 +407,19 @@ class ArrayHelper
 
 
     public static function manage()
+    {
+        # code...
+    }
+
+    /**
+     * Compiles multiple arrays into one based on the provided mapping
+     *
+     * @param array $map
+     * @param callable $callback
+     * @param array ...$arrays
+     * @return array
+     */
+    public static function compile(array $map, callable $callback, ...$arrays) : array
     {
         # code...
     }
