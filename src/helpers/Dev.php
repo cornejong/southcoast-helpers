@@ -17,6 +17,7 @@ class Dev
     private static $temp_extention = 'temp';
 
     private static $LOG_TO_FILE = false;
+    private static $LOGBOOK_DIRECTORY;
 
     public static function log($message, $die = false)
     {
