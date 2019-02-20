@@ -16,9 +16,15 @@ class Dev
     private static $temp_directory;
     private static $temp_extention = 'temp';
 
+    private static $LOG_TO_FILE = false;
+
     public static function log($message, $die = false)
     {
         if (!self::isDev()) return;
+
+        if(self::$LOG_TO_FILE) {
+            self::saveLog(is_array($message) || is_object($message) ? print_r($message, true) : $message);
+        }
 
         if (is_array($message) || is_object($message)) {
             print_r($message);
@@ -78,7 +84,28 @@ class Dev
         self::$ENV_DEV = $isDev;
     }
 
+    public static function logToFile(string $path = null) 
+    {
+        if(!is_null($path) && !file_exists($path)) {
+            throw new \Exception('No Temporary direcotry provided!', 1);
+        } elseif(is_null($path)) {
+            $path = self::getTempDirectory();
+        }
+
+        self::$LOG_TO_FILE = true;
+        self::setLogbookDirectory($path);
+    }
+
     public static function setTempDirectory(string $path)
+    {
+        if(!file_exists($path)) {
+            mkdir($path, 0700, true);
+        }
+
+        self::$LOGBOOK_DIRECTORY = $path;
+    }
+
+    public static function setLogbookDirectory(string $path)
     {
         if(!file_exists($path)) {
             mkdir($path, 0700, true);
@@ -87,6 +114,14 @@ class Dev
         self::$temp_directory = $path;
     }
 
+    public static function getTempDirectory()
+    {
+        if(!isset(self::$temp_directory)) {
+            throw new \Exception('No Temporary direcotry provided!', 1);
+        }
+
+        return self::$temp_directory;
+    }
 
     public static function setTempExtention(string $ext)
     {
@@ -118,15 +153,27 @@ class Dev
     }
 
 
-    public static function store(string $name, $data, $jsonEncode = false) 
+    public static function store(string $name, $data, $jsonEncode = false, bool $append = false) 
     {
         if(!isset(self::$temp_directory)) {
             throw new \Exception('No Temporary direcotry provided!', 1);
         }
 
-        return (file_put_contents(self::$temp_directory . DIRECTORY_SEPARATOR . $name . '.' . self::$temp_extention, ($jsonEncode) ? Json::prettyEncode($data) : $data));
+        return file_put_contents(self::$temp_directory . DIRECTORY_SEPARATOR . $name . '.' . (($jsonEncode) ? 'json' : self::$temp_extention), ($jsonEncode) ? Json::prettyEncode($data) : $data, ($append) ? FILE_APPEND : null);
     }
 
+    /**
+     * Saves the log to a file
+     *
+     * @param [type] $data
+     * @return void
+     * 
+     * @todo: BUILD THIS METHOD! 
+     */
+    public function saveLog($data)
+    {
+        # code...
+    }
 
     public static function getRandomForgroundColor()
     {
