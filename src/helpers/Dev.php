@@ -103,7 +103,7 @@ class Dev
             mkdir($path, 0700, true);
         }
 
-        self::$LOGBOOK_DIRECTORY = $path;
+        self::$temp_directory= $path;
     }
 
     public static function setLogbookDirectory(string $path)
@@ -112,7 +112,7 @@ class Dev
             mkdir($path, 0700, true);
         }
 
-        self::$temp_directory = $path;
+        self::$LOGBOOK_DIRECTORY = $path;
     }
 
     public static function getTempDirectory()
