@@ -309,7 +309,7 @@ class ArrayHelper
 
     public static function isAssoc(array $array)
     {
-        if ([] === $arr) {
+        if ([] === $array) {
             return false;
         }
 
@@ -399,7 +399,7 @@ class ArrayHelper
 
         $tmp = [];
         foreach($map as $key => $item) {
-            $tmp[$key] = (isset($item['value'])) ? $item['value'] : self::get($field, $array); // $array[$item['field']];
+            $tmp[$key] = (isset($item['value'])) ? $item['value'] : self::get($item['field'], $array); // $array[$item['field']];
         }
 
         return self::rebuildArray($tmp);
