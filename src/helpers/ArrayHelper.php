@@ -120,7 +120,7 @@ class ArrayHelper
         // return self::cleanupRebuild($dove);
     }
 
-    public function searchByQuery(string $query, array $array, &$found, bool $strict = true) : bool
+    public static function searchByQuery(string $query, array $array, &$found, bool $strict = true) : bool
     {
         $flat_array = self::flatten($array);
         $query = self::renderSearchQuery($query);
@@ -145,7 +145,7 @@ class ArrayHelper
         return (empty($found)) ? false : true;
     }
 
-    public function renderSearchQuery(string $query) : array
+    public static function renderSearchQuery(string $query) : array
     {
         $query_array = explode(' ', $query);
 
