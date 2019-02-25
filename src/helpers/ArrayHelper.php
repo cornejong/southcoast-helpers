@@ -120,6 +120,43 @@ class ArrayHelper
         // return self::cleanupRebuild($dove);
     }
 
+    public function searchByQuery(string $query, array $array, &$found, bool $strict = true) : bool
+    {
+        $flat_array = self::flatten($array);
+        $query = self::renderSearchQuery($query);
+
+        $found = [];
+
+        foreach ($flat_array as $key => $value) {
+            if(preg_match($query['pattern'], $key, $matches)) {
+                $strict_statement = ($value === $query['requested_value']);
+                $non_strict_statenent = ($value == $query['requested_value']);
+
+                if(($strict && $strict_statement) || (!$strict && $non_strict_statenent)) {
+                    $found[] = $key;
+                }
+            } 
+        }
+
+        if(count($found) == 1) {
+            $found = $found[0];
+        }
+
+        return (empty($found)) ? false : true;
+    }
+
+    public function renderSearchQuery(string $query) : array
+    {
+        $query_array = explode(' ', $query);
+
+        return [
+            'pattern' => self::buildFlatQueryExpression($query_array[0]),
+            'string' => $query_array[0],
+            'requested_value' => $query_array[1],
+            'comparison_operator' => $query_array[2],
+        ];
+    }
+
     public static function cleanUpFlatQueryString(string $query)
     {
         return preg_replace('/\[(\d)\]/', '$1', $query);
