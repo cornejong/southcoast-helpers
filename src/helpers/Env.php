@@ -45,7 +45,7 @@ abstract class Env
             throw new EnvError(EnvError::COULD_NOT_OPEN_STREAM, $path);
         }
 
-        $contents = '';
+        $content = '';
 
         while (!feof($handle)) {
             $content .= fread($handle, 8192);
@@ -73,7 +73,7 @@ abstract class Env
     public static function reload()
     {
         if (!isset(self::$env_path)) {
-            throw new EnvError(EnvError::NON_EXISTING_ENV_FILE, $path);
+            throw new EnvError(EnvError::NON_EXISTING_ENV_FILE, self::$env_path);
         }
 
         self::load(self::$env_path, true);

@@ -1,7 +1,5 @@
 <?php
 
-/* TODO: IMPLEMENT HELPER CLASS FOR DATA VALIDATION */
-
 namespace SouthCoast\Helpers;
 
 class Validate
@@ -57,7 +55,7 @@ class Validate
 
     final public static function emailsSanitizer(\Traversable $emails) : bool
     {
-        foreach($email as $index => $email) {
+        foreach($emails as $index => $email) {
             $result[$index] = self::emailSanitizer($email);
         }
 
@@ -111,6 +109,15 @@ class Validate
             return ((98-$checksum) == $check);
         } else
             return false;
+    }
+
+    final public static function ibans(\Traversable $ibans, &$result) : bool
+    {
+        foreach($ibans as $index => $iban) {
+            $result[$index] = self::iban($iban);
+        }
+
+        return in_array(false, $result) ? false : true;
     }
 
 }

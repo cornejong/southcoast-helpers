@@ -1,12 +1,26 @@
 <?php
 
+/*
+ * Created on Wed Feb 25 2019
+ *
+ * Copyright (c) 2019 SouthCoast
+ */
+
 namespace SouthCoast\Helpers;
 
+/**
+ * A toolset for working with Encryption and Hashes in php
+ * @author SouthCoast <hello@southcoast.tech>
+ * @category Helper
+ * @version 1.0.0
+ * @package SouthCoast\Helpers
+ */
 class Spice
 {
     const SEA_SLAT = 'tiger160,3';
     const PREFERRED_SPICE = 'sha512';
     const PREFERRED_TOKEN_SPICE = 'AES-256-CBC';
+    const TIGHT_SPICE = 'crc32b';
     const GRAMS_OF_SPICE = 4096;
 
     const SECRET_SETTINGS = [
@@ -57,7 +71,7 @@ class Spice
      */
     public static function deFace(string $value) : string
     {
-        for($i = 0; $i <= (self::GRAMS_OF_SPICE / 20); $i++){
+        for($i = 0; $i <= (self::GRAMS_OF_SPICE / 50); $i++){
             $value = base64_encode(self::Up($value, self::passTheSalt()));
         }
 
@@ -82,5 +96,17 @@ class Spice
     public static function TellMeASecret()
     {
         return openssl_pkey_new(self::SECRET_SETTINGS);
+    }
+
+    /**
+     * Generates a short hash value for the provided data
+     *
+     * @param string $data
+     * @param string $salt
+     * @return string
+     */
+    public static function Tighten(string $data, string $salt = '') : string
+    {
+        return (string) hash(self::TIGHT_SPICE, $data . $salt, false);
     }
 }

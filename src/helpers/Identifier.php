@@ -36,7 +36,7 @@ abstract class Identifier
         return $guid;
     }
 
-    final public static function newUniqIdInCollection(\Traverable$collection, string $prefix = null)
+    final public static function newUniqIdInCollection(\Traverable $collection, string $prefix = null)
     {
         $uid = self::newUniqId($prefix);
 

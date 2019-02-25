@@ -11,6 +11,8 @@ namespace SouthCoast\Helpers;
 
 class Json
 {
+    const PRETTY = JSON_PRETTY_PRINT;
+
     public static function isValid(string $json) : bool
     {
         json_decode($json);
@@ -20,6 +22,22 @@ class Json
         }
 
         return true;
+    }
+
+    public static function stringify($data) : string
+    {
+        $json = json_encode($data);
+        
+        if(JsonError::occurred()) {
+            throw new JsonError();
+        }
+
+        return $json;
+    }
+
+    public static function encode($data) : string
+    {
+        return self::stringify($data);
     }
 
     public static function parse(string $string, $array = false)
