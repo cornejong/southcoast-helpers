@@ -6011,8 +6011,11 @@ $array = array (
 // print_r(ArrayHelper::getMultiple($array, '?.firstname', '?.lastname', '?.age'));
 
 // var_dump(ArrayHelper::get('?.friends.?.firstname', $array));
-if(!ArrayHelper::search('67492', $array)) {
-    print('NOT FOUND');
+if(!ArrayHelper::search('644604', $array)) {
+    // print('NOT FOUND');
 } else {
-    print('FOUND');
+    // print('FOUND' . "\n" . ArrayHelper::search('644604', $array) . "\n");
 }
+
+var_dump(ArrayHelper::searchByQuery('?.?.Id == 647152', $array, $found, false));
+var_dump(ArrayHelper::getParent($found, $array));
