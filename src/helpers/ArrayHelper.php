@@ -397,7 +397,6 @@ class ArrayHelper
         foreach ($array as $key => $value) {
             if (!isset($value[$index])) {
                 if ($skipIfMissing) {
-                    Dev::log('X Index not pressent in element with Key: '  . $key . '. Index: ' . $index);
                     continue;
                 } else {
                     throw new \Exception('Specified Index not pressent in array element with key: ' . $index, 1);
