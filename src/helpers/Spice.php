@@ -46,7 +46,7 @@ class Spice
      * @param string $salt
      * @return string
      */
-    public static function Up(string $value, string $salt) : string
+    public static function Up(string $value, string $salt = '') : string
     {
         return hash(self::PREFERRED_SPICE, $value . $salt);
     }

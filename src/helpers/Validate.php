@@ -25,7 +25,7 @@ class Validate
         return in_array(false, $result) ? false : true;
     }
  
-    final public static function urlsSanitizer(\Traversable $urls) : bool
+    final public static function urlsSanitizer(\Traversable $urls)
     {
         foreach($urls as $index => $url) {
             $result[$index] = self::urlSanitizer($url);
@@ -53,7 +53,7 @@ class Validate
         return in_array(false, $result) ? false : true;
     }
 
-    final public static function emailsSanitizer(\Traversable $emails) : bool
+    final public static function emailsSanitizer(\Traversable $emails)
     {
         foreach($emails as $index => $email) {
             $result[$index] = self::emailSanitizer($email);
