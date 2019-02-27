@@ -29,6 +29,7 @@ class Dev
 
         if (is_array($message) || is_object($message)) {
             print_r($message);
+            if ($die) die();
             return;
         }
 
