@@ -7,8 +7,8 @@ use \Exception;
 class Dev
 {
 
-    private static $foreground_colors = null;
-    private static $background_colors = null;
+    private static $foreground_colors = [];
+    private static $background_colors = [];
 
     private static $ENV_DEV;
     private static $ENV_CONSOLE;
@@ -67,6 +67,7 @@ class Dev
  
 
         if ($die) die();
+        return;
     }
 
     protected static function isDev()
@@ -148,9 +149,12 @@ class Dev
 
     public static function rainbowLog($message, bool $die = false)
     {
+        $string = '';
+
         foreach(str_split($message) as $char) {
             $string .= self::get_colored_string($char, self::getRandomForgroundColor(), null);
         }
+        
         self::log($string, $die);
     }
 

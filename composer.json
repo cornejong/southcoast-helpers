@@ -18,7 +18,8 @@
     },
     "autoload": {
         "psr-4": {
-            "SouthCoast\\Helpers\\": "src/helpers/"
+            "SouthCoast\\Helpers\\": "src/helpers/",
+            "SouthCoast\\Helpers\\Objects": "src/helpers/Objects"
         }
     },
     "minimum-stability": "stable",

@@ -240,8 +240,6 @@ class ArrayHelper
     {
         $array = [];
     
-        /* TODO: ADD SUPPORT FOR NEW APPENDING ARRAY ELEMENTS '[]' */
-    
         foreach($map as $key => $value) {
             $key_array = explode('.', $key);
             if(count($key_array) == 1) {
@@ -256,7 +254,7 @@ class ArrayHelper
 
     public static function cleanupRebuild(array $array) : array
     {
-        return json_decode(preg_replace('/(\[|\])/', '', json_encode($array)), true);
+        return json_decode(preg_replace('/\[(\d*)\]/', '$1', json_encode($array)), true);
     }
 
     public static function get(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
@@ -365,10 +363,10 @@ class ArrayHelper
      * Counts all elements in an array recursivly
      * Not only the top level elements in a multidimentional array
      *
-     * @param \Countable $array
+     * @param mixed $array
      * @return integer
      */
-    public function recursiveCount(\Countable $array) : int
+    public function recursiveCount($array) : int
     {
         return (int) count($array, COUNT_RECURSIVE);
     }
@@ -463,7 +461,7 @@ class ArrayHelper
      * @param array ...$arrays
      * @return array
      */
-    public static function compile(array $map, callable $callback, ...$arrays) : array
+    public static function compile(array $map, callable $callback, ...$arrays)
     {
         # code...
     }

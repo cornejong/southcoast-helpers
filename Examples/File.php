@@ -1,7 +1,7 @@
 <?php
 
 File::setBaseDirectory(TEMP_FOLDER);
-File::defineDirectory('dir_identifier', '/Path/To/Dir', 'index_23');
+File::defineDirectory('dir_identifier', '/Path/To/Dir');
 
 File::list();
 File::list('$dir_identifier');

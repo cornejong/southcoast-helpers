@@ -65,7 +65,7 @@ abstract class Env
             self::defineConstants(self::$enviroment);
         }
 
-        self::defineVariables(self::$enviroment);
+        // self::defineVariables(self::$enviroment);
 
         return true;
     }
@@ -202,7 +202,7 @@ class EnvError extends \Error
         'code' => 000
     ];
 
-    public function __construct($error, $extra = null)
+    public function __construct(array $error, $extra = null)
     {
         extract($error);
 
