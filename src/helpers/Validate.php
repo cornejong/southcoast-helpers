@@ -80,8 +80,22 @@ class Validate
         return in_array(false, $result) ? false : true;
     }
 
+    final public static function path(string $path) : bool
+    {
+        return file_exists($path) ? true : false;
+    }
 
-    public static function iban(string $iban) : bool
+    final public static function isDirectory(string $path) : bool
+    {
+        return is_dir($path) ? true : false;
+    }
+
+    final public static function isFile(string $path) : bool
+    {
+        return is_file($path) ? true : false;
+    }
+ 
+    final public static function iban(string $iban) : bool
     {
 
         // Normalize input (remove spaces and make upcase)
