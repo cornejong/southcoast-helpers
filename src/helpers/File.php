@@ -43,7 +43,7 @@ class File
         }
 
         if (is_null($extention)) {
-            $list = glob($path . ($files_only) ? DIRECTORY_SEPARATOR . '*.*' : '');
+            $list = glob($path . (($files_only) ? DIRECTORY_SEPARATOR . '*.*' : ''));
         } else {
             $list = glob($path . DIRECTORY_SEPARATOR . '*.' . $extention);
         }
@@ -66,7 +66,7 @@ class File
         return $list;
     }
 
-    public static function stripBasePath(string $base_path, string $to_strip) :  string
+    public static function stripBasePath(string $base_path, string $to_strip): string
     {
         /* replace the base path by nothing in the to be striped value */
         return str_replace($base_path . DIRECTORY_SEPARATOR, self::NOTHING, $to_strip);
@@ -75,7 +75,7 @@ class File
     public static function isKnownDirectory(string &$path): bool
     {
         /* Check if the path starts with the identifier token */
-        if ($path[0] != self::DIRECTORY_MAP_IDENTIFIER) {
+        if (!StringHelper::startsWith(self::DIRECTORY_MAP_IDENTIFIER, $path)) {
             /* if not, simple, its not. return false */
             return false;
         }
@@ -105,17 +105,17 @@ class File
             $path = self::getRealPath($identifier, $path);
         }
         /* Check if this is a valid path */
-        if(!Validate::path($path)) {
+        if (!Validate::path($path)) {
             throw new FileError(FileError::NOT_VALID_PATH, $path);
         }
         /* return the path */
         return $path;
     }
 
-    public static function getRealPath(string $identifier, string $path) : string
+    public static function getRealPath(string $identifier, string $path): string
     {
         /* Check if this is a known identifier */
-        if(!self::isKnownIdentifier($identifier)) {
+        if (!self::isKnownIdentifier($identifier)) {
             throw new FileError(FileError::UNKNOWN_DIRECTORY_IDENTIFIER, $identifier);
         }
 
@@ -137,7 +137,7 @@ class File
 
     public static function cleanUpPath(string $path): string
     {
-        if ($path[strlen($path) - 1] == DIRECTORY_SEPARATOR) {
+        if (StringHelper::endsWith(DIRECTORY_SEPARATOR, $path)) {
             $path = rtrim($path, DIRECTORY_SEPARATOR);
         }
 
@@ -178,7 +178,7 @@ class File
             throw new FileError(FileError::IDENTIFIER_ALREADY_IN_USE, $identifier);
         }
         /* If the identifier is the base directory */
-        if($identifier == 'base_directory') {
+        if ($identifier == 'base_directory') {
             /* Add it to the base directory */
             self::$base_directory = $path;
         }
@@ -186,14 +186,34 @@ class File
         self::$directory_map[$identifier] = $path;
     }
 
+    public static function loadDirectoryMap(array $map)
+    {
+        /* Loop over all the entries */
+        foreach ($map as $identifier => $path) {
+            /* Define each directory */
+            self::defineDirectory($identifier, $path);
+        }
+    }
 
+    public static function clearDirectoryMap(bool $removeBasePath = false)
+    {
+        /* Save the base path */
+        $base_directory_path = self::$directory_map[self::BaseDirectory];
+        /* Empty the mapping */
+        self::$directory_map = [];
+        /* Check if the base path needed to be saved or not*/
+        if ($removeBasePath) {
+            /* Set the base path again */
+            self::defineDirectory(self::BaseDirectory, $base_directory_path);
+        }
+    }
 
 
     /** 
      * SETTERS
      */
 
-    public static function get($path) : string
+    public static function get($path): string
     {
         # code...
 
@@ -252,4 +272,3 @@ class FileError extends \Error
         parent::__construct($message, $code);
     }
 }
-
