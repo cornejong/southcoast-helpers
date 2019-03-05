@@ -28,8 +28,8 @@ abstract class Env
         'cache_dir' => 'Path | The path to the caching direcotry',
     ];
 
-    protected static $enviroment;
-    protected static $env_path;
+    protected static $enviroment = [];
+    protected static $env_path = '';
 
     public static function load(string $path, bool $reload = false) : bool
     {

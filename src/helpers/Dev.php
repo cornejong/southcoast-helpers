@@ -86,7 +86,7 @@ class Dev
 
     protected static function isDev()
     {
-        if(Env::isLoaded() && !isset(self::$ENV_DEV)) {
+        if(class_exists('\SouthCoast\Helpers\Env') && Env::isLoaded() && !isset(self::$ENV_DEV)) {
             self::$ENV_DEV = Env::isDev();
             self::$ENV_CONSOLE = Env::isConsole();
         } else {
