@@ -3,7 +3,7 @@
 namespace SouthCoast\Helpers;
 
 use \Exception;
-use SouthCoas\Helpers\Env;
+use SouthCoast\Helpers\Env;
 
 class Dev
 {
