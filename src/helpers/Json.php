@@ -67,14 +67,58 @@ class Json
     {
         return json_encode($data, JSON_PRETTY_PRINT);
     }
+
+    public static function add(array $elements, string $json) : string
+    {
+        $array = self::parse($json, true);
+        foreach($elements as $key => $value) {
+            if(isset($array[$key])) {
+                throw new JsonError(JsonError::KEY_ALREADY_EXISTS, $key);
+            }
+
+            $array[$key] = $value;
+        }
+
+        return self::stringify($array);
+    }
+
+    public static function unset(string &$json, ...$keys)
+    {
+        $array = self::parse($json, true);
+        
+        foreach($keys as $key) {
+            if(isset($array[$key])) {
+                unset($array[$key]);
+            } else {
+                throw new JsonError(JsonError::KEY_DOES_NOT_EXIST, $key);
+            }
+        }
+
+        $json = self::stringify($array);
+    }
+
+    public static function merge(...$strings) : string
+    {
+        $tmp = [];
+        foreach($strings as $string) {
+            $tmp = array_merge_recursive($tmp, self::parse($string, true));
+        }
+        return self::stringify($tmp);
+    }
+    
 }
 
 class JsonError extends \Error
 {
+    const LAST_JSON_ERROR = [];
+    const KEY_ALREADY_EXISTS = [
+        'message' => '',
+        'code' => 123
+    ];
 
     const ERROR_MESSAGE = 'Invalid Json Provided! Error Message: ';
 
-    public function __construct()
+    public function __construct($message = null, $extra = null)
     {
         parent::__construct(self::ERROR_MESSAGE . json_last_error_msg(), json_last_error());
     }
