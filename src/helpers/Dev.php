@@ -18,6 +18,7 @@ class Dev
 
     private static $LOG_TO_FILE = false;
     private static $LOGBOOK_DIRECTORY;
+    private static $log_file_name = '';
 
     public static function log($message, $die = false)
     {
@@ -87,7 +88,7 @@ class Dev
         self::$ENV_DEV = $isDev;
     }
 
-    public static function logToFile(string $path = null) 
+    public static function logToFile(string $path = null, $file_name = 'LOG') 
     {
         if(!is_null($path) && !file_exists($path)) {
             throw new \Exception('No Temporary direcotry provided!', 1);
@@ -95,6 +96,7 @@ class Dev
             $path = self::getTempDirectory();
         }
 
+        self::$log_file_name = uniqid($file_name . '_');
         self::$LOG_TO_FILE = true;
         self::setLogbookDirectory($path);
     }
@@ -174,11 +176,12 @@ class Dev
      * @param [type] $data
      * @return void
      * 
-     * @todo: BUILD THIS METHOD! 
      */
     public function saveLog($data)
     {
-        # code...
+        $string = '[ ' . date('Y-m-d H:i:s') . ' ] ' . $data;
+        $response = file_put_contents(self::$LOGBOOK_DIRECTORY . DIRECTORY_SEPARATOR . self::$log_file_name . '.txt', $string, FILE_APPEND);
+        return $response != false ? true : false;
     }
 
     public static function getRandomForgroundColor()
