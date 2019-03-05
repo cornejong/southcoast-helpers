@@ -179,7 +179,7 @@ class Dev
      */
     public function saveLog($data)
     {
-        $string = '[ ' . date('Y-m-d H:i:s') . ' ] ' . $data;
+        $string = '[ ' . date('Y-m-d H:i:s') . ' ] ' . $data  . "\n";
         $response = file_put_contents(self::$LOGBOOK_DIRECTORY . DIRECTORY_SEPARATOR . self::$log_file_name . '.txt', $string, FILE_APPEND);
         return $response != false ? true : false;
     }
