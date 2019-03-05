@@ -466,4 +466,11 @@ class ArrayHelper
         # code...
     }
 
+    public static function walk(array &$array, $callback, ...$parameters)
+    {
+        foreach($array as &$element) {
+            $callback($element, ...$parameters);
+        }
+    }
+
 }
