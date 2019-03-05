@@ -4,7 +4,6 @@
     "type": "library",
     "version": "1.0.0",
     "keywords": ["log","logging", "Json", "Env", "Envoiroment", "Validation", "Identifier", "Array", "Helper", "Helpers", "Object"],
-    "homepage": "https://github.com/Seldaek/monolog",
     "authors": [
         {
             "name": "Corné de Jong | SouthCoast",
@@ -18,10 +17,9 @@
     },
     "autoload": {
         "psr-4": {
-            "SouthCoast\\Helpers\\": "src/helpers/",
-            "SouthCoast\\Helpers\\Objects": "src/helpers/Objects"
+            "SouthCoast\\Helpers\\": "src/helpers/"
         }
-    },
+    },  
     "minimum-stability": "stable",
     "license": "MIT"
 }
