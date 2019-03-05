@@ -3,30 +3,43 @@
 namespace SouthCoast\Helpers;
 
 use \Exception;
+use SouthCoas\Helpers\Env;
 
 class Dev
 {
-
+    /* CONSOLE COLOURS */
     private static $foreground_colors = [];
     private static $background_colors = [];
 
+    /* ENVIROMENT */
     private static $ENV_DEV;
     private static $ENV_CONSOLE;
 
+    /* TEMP DIRECOTRY */
     private static $temp_directory;
     private static $temp_extention = 'temp';
 
+    /* LOG DATA TO FILE */
     private static $LOG_TO_FILE = false;
     private static $LOGBOOK_DIRECTORY;
     private static $log_file_name = '';
 
+    /* LOG DATA TO METHOD */
+    private static $LOG_TO_FUNCTION = false;
+    private static $LOG_FUNCTION_CALLBACK;
+    private static $LOG_FUNCTION_PARAMETERS;
+
     public static function log($message, $die = false)
     {
-        if (!self::isDev()) return;
-
         if(self::$LOG_TO_FILE) {
             self::saveLog(is_array($message) || is_object($message) ? print_r($message, true) : $message);
         }
+
+        if(self::$LOG_TO_FUNCTION) {
+            call_user_func(self::$LOG_FUNCTION_CALLBACK, $message, ...self::$LOG_FUNCTION_PARAMETERS);
+        }
+
+        if (!self::isDev()) return;
 
         if (is_array($message) || is_object($message)) {
             print_r($message);
@@ -73,7 +86,7 @@ class Dev
 
     protected static function isDev()
     {
-        if(class_exists('SouthCoast\\Helpers\\Env') && \SouthCoast\Helpers\Env::isLoaded() && !isset(self::$ENV_DEV)) {
+        if(Env::isLoaded() && !isset(self::$ENV_DEV)) {
             self::$ENV_DEV = Env::isDev();
             self::$ENV_CONSOLE = Env::isConsole();
         } else {
@@ -99,6 +112,17 @@ class Dev
         self::$log_file_name = uniqid($file_name . '_');
         self::$LOG_TO_FILE = true;
         self::setLogbookDirectory($path);
+    }
+
+    public static function logToFunction(array $function, ...$parameters) 
+    {
+        if(!function_exists($function)) {
+            throw new \Exception('The Provided function doesn\'t exist! Provided: ' . $function, 1);
+        }
+
+        self::$LOG_TO_FUNCTION = true;
+        self::$LOG_FUNCTION_CALLBACK = $function;
+        self::$LOG_FUNCTION_PARAMETERS = $parameters;
     }
 
     public static function setTempDirectory(string $path)
