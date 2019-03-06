@@ -21,7 +21,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable
         if(!empty($data)) {
             $this->load($data);
         }
-    }
+    }   
 
     public function load(array $data) : bool
     {
