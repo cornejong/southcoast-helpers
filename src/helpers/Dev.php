@@ -114,7 +114,7 @@ class Dev
         self::setLogbookDirectory($path);
     }
 
-    public static function logToFunction(array $function, ...$parameters) 
+    public static function logToFunction($function, ...$parameters) 
     {
         if(!function_exists($function)) {
             throw new \Exception('The Provided function doesn\'t exist! Provided: ' . $function, 1);
