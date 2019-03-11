@@ -320,6 +320,8 @@ class Dev
         set_exception_handler(function($e) {
             Dev::log('X EXCEPTION! == ' . $e->getMessage());
             Dev::log($e->getTraceAsString());
+
+            throw new \Exception($e->getMessage(), $e->getCode());
         }); 
     }
 }
