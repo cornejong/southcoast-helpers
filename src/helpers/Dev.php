@@ -111,7 +111,7 @@ class Dev
     public static function logToFile(string $path = null, $file_name = 'LOG')
     {
         if (!is_null($path) && !file_exists($path)) {
-            throw new \Exception('No Temporary direcotry provided!', 1);
+            throw new \Exception('No Valid direcotry provided! Provided: ' . $path, 1);
         } elseif (is_null($path)) {
             $path = self::getTempDirectory();
         }
@@ -312,5 +312,14 @@ class Dev
         self::$background_colors['magenta'] = '45';
         self::$background_colors['cyan'] = '46';
         self::$background_colors['light_gray'] = '47';
+    }
+
+
+    public static function registerCustomExceptionHandler()
+    {
+        set_exception_handler(function($e) {
+            Dev::log('X EXCEPTION! == ' . $e->getMessage());
+            Dev::log($e->getTraceAsString());
+        }); 
     }
 }
