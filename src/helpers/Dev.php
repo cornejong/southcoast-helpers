@@ -317,11 +317,36 @@ class Dev
 
     public static function registerCustomExceptionHandler()
     {
-        set_exception_handler(function($e) {
-            Dev::log('X EXCEPTION! == ' . $e->getMessage());
-            Dev::log($e->getTraceAsString());
+        $handler = function($th) {
 
-            throw new \Exception($e->getMessage(), $e->getCode());
-        }); 
+            if($th instanceof \Exception) {
+                Dev::log('X EXCEPTION! == ' . $th->getMessage());
+                Dev::log($th->getTraceAsString());
+                throw new \Exception($e->getMessage(), $th->getCode());
+            } elseif($th instanceof \Error) {
+                Dev::log('X ERROR! == ' . $th->getMessage());
+                Dev::log($th->getTraceAsString());
+                throw new \Error($e->getMessage(), $th->getCode());
+            } else {
+                Dev::log('X ' . strtoupper(get_class($th)) . '! == ' . $th->getMessage());
+                Dev::log($th->getTraceAsString());
+                $class = get_class($th);
+                throw new $class($e->getMessage(), $th->getCode());
+            }
+
+            Dev::log($th->getTraceAsString());
+
+            throw new \Exception($e->getMessage(), $th->getCode());
+        };
+
+        set_exception_handler($handler); 
+
+        set_error_handler($handler)
+    }
+
+    public static function restoreExceptionHanler()
+    {
+        restore_exception_handler();
+        restore_error_handler();
     }
 }
