@@ -150,11 +150,15 @@ class ArrayHelper
     {
         $query_array = explode(' ', $query);
 
+        $string = array_shift($query_array);
+        $operator = array_shift($query_array);
+        $value = implode(' ', $query_array);
+
         return [
-            'pattern' => self::buildFlatQueryExpression($query_array[0]),
-            'string' => $query_array[0],
-            'requested_value' => $query_array[2],
-            'comparison_operator' => $query_array[1],
+            'pattern' => self::buildFlatQueryExpression($string),
+            'string' => $string,
+            'requested_value' => $value,
+            'comparison_operator' => $operator,
         ];
     }
 
