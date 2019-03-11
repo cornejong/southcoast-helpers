@@ -28,6 +28,7 @@ class Dev
     private static $LOG_TO_FUNCTION = false;
     private static $LOG_FUNCTION_CALLBACK;
     private static $LOG_FUNCTION_PARAMETERS;
+    private static $runtime_id;
 
     public static function log($message, $die = false)
     {
@@ -36,7 +37,7 @@ class Dev
         }
 
         if (self::$LOG_TO_FUNCTION) {
-            call_user_func(self::$LOG_FUNCTION_CALLBACK, $message, ...self::$LOG_FUNCTION_PARAMETERS);
+            call_user_func(self::$LOG_FUNCTION_CALLBACK, $message, self::$runtime_id, ...self::$LOG_FUNCTION_PARAMETERS);
         }
 
         if (!self::isDev()) {
@@ -130,6 +131,7 @@ class Dev
         self::$LOG_TO_FUNCTION = true;
         self::$LOG_FUNCTION_CALLBACK = $function;
         self::$LOG_FUNCTION_PARAMETERS = $parameters;
+        self::$runtime_id = Identifier::newGuid();
     }
 
     public static function setTempDirectory(string $path)
@@ -318,7 +320,6 @@ class Dev
     public static function registerCustomExceptionHandler()
     {
         $handler = function($th) {
-
             if($th instanceof \Exception) {
                 Dev::log('X EXCEPTION! == ' . $th->getMessage());
                 Dev::log($th->getTraceAsString());
