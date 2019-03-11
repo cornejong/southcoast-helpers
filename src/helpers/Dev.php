@@ -2,8 +2,8 @@
 
 namespace SouthCoast\Helpers;
 
-use \Exception;
 use SouthCoast\Helpers\Env;
+use \Exception;
 
 class Dev
 {
@@ -31,19 +31,24 @@ class Dev
 
     public static function log($message, $die = false)
     {
-        if(self::$LOG_TO_FILE) {
+        if (self::$LOG_TO_FILE) {
             self::saveLog(is_array($message) || is_object($message) ? print_r($message, true) : $message);
         }
 
-        if(self::$LOG_TO_FUNCTION) {
+        if (self::$LOG_TO_FUNCTION) {
             call_user_func(self::$LOG_FUNCTION_CALLBACK, $message, ...self::$LOG_FUNCTION_PARAMETERS);
         }
 
-        if (!self::isDev()) return;
+        if (!self::isDev()) {
+            return;
+        }
 
         if (is_array($message) || is_object($message)) {
             print_r($message);
-            if ($die) die();
+            if ($die) {
+                die();
+            }
+
             return;
         }
 
@@ -52,7 +57,7 @@ class Dev
             case '>':
                 $message = "\n" . $message;
                 break;
-            
+
             /* Tab Prefix */
             case '$':
                 $message = "\t" . $message;
@@ -78,15 +83,17 @@ class Dev
         }
 
         print $message . "\n";
- 
 
-        if ($die) die();
+        if ($die) {
+            die();
+        }
+
         return;
     }
 
     protected static function isDev()
     {
-        if(class_exists('\SouthCoast\Helpers\Env') && Env::isLoaded() && !isset(self::$ENV_DEV)) {
+        if (class_exists('\SouthCoast\Helpers\Env') && Env::isLoaded() && !isset(self::$ENV_DEV)) {
             self::$ENV_DEV = Env::isDev();
             self::$ENV_CONSOLE = Env::isConsole();
         } else {
@@ -101,11 +108,11 @@ class Dev
         self::$ENV_DEV = $isDev;
     }
 
-    public static function logToFile(string $path = null, $file_name = 'LOG') 
+    public static function logToFile(string $path = null, $file_name = 'LOG')
     {
-        if(!is_null($path) && !file_exists($path)) {
+        if (!is_null($path) && !file_exists($path)) {
             throw new \Exception('No Temporary direcotry provided!', 1);
-        } elseif(is_null($path)) {
+        } elseif (is_null($path)) {
             $path = self::getTempDirectory();
         }
 
@@ -114,9 +121,9 @@ class Dev
         self::setLogbookDirectory($path);
     }
 
-    public static function logToFunction($function, ...$parameters) 
+    public static function logToFunction(array $function, ...$parameters)
     {
-        if(!function_exists($function)) {
+        if (!method_exists(...$function)) {
             throw new \Exception('The Provided function doesn\'t exist! Provided: ' . $function, 1);
         }
 
@@ -127,16 +134,16 @@ class Dev
 
     public static function setTempDirectory(string $path)
     {
-        if(!file_exists($path)) {
+        if (!file_exists($path)) {
             mkdir($path, 0700, true);
         }
 
-        self::$temp_directory= $path;
+        self::$temp_directory = $path;
     }
 
     public static function setLogbookDirectory(string $path)
     {
-        if(!file_exists($path)) {
+        if (!file_exists($path)) {
             mkdir($path, 0700, true);
         }
 
@@ -145,7 +152,7 @@ class Dev
 
     public static function getTempDirectory()
     {
-        if(!isset(self::$temp_directory)) {
+        if (!isset(self::$temp_directory)) {
             throw new \Exception('No Temporary direcotry provided!', 1);
         }
 
@@ -157,9 +164,11 @@ class Dev
         self::$temp_extention = $ext;
     }
 
-    public static function logJson($data, bool $die = false) : void
+    public static function logJson($data, bool $die = false): void
     {
-        if (!self::isDev()) return;
+        if (!self::isDev()) {
+            return;
+        }
 
         self::log(Json::prettyEncode($data), $die);
     }
@@ -177,21 +186,37 @@ class Dev
     {
         $string = '';
 
-        foreach(str_split($message) as $char) {
+        foreach (str_split($message) as $char) {
             $string .= self::get_colored_string($char, self::getRandomForgroundColor(), null);
         }
-        
+
         self::log($string, $die);
     }
 
-
-    public static function store(string $name, $data, $jsonEncode = false, bool $append = false) 
+    public static function store(string $name, $data, $jsonEncode = false, bool $append = false)
     {
-        if(!isset(self::$temp_directory)) {
+        if (!isset(self::$temp_directory)) {
             throw new \Exception('No Temporary direcotry provided!', 1);
         }
 
         return file_put_contents(self::$temp_directory . DIRECTORY_SEPARATOR . $name . '.' . (($jsonEncode) ? 'json' : self::$temp_extention), ($jsonEncode) ? Json::prettyEncode($data) : $data, ($append) ? FILE_APPEND : null);
+    }
+
+    public static function trace(bool $die = false, bool $asArray = false)
+    {
+        /* Check if we need to return an array with the trace */
+        if ($asArray) {
+            /* Return an array */
+            return debug_backtrace();
+        }
+        /* Else, Print te trace */
+        debug_print_backtrace();
+
+        /* Check if we need to die */
+        if ($die) {
+            /* die */
+            die();
+        }
     }
 
     /**
@@ -199,11 +224,11 @@ class Dev
      *
      * @param [type] $data
      * @return void
-     * 
+     *
      */
     public static function saveLog($data)
     {
-        $string = '[ ' . date('Y-m-d H:i:s') . ' ] ' . $data  . "\n";
+        $string = '[ ' . date('Y-m-d H:i:s') . ' ] ' . $data . "\n";
         $response = file_put_contents(self::$LOGBOOK_DIRECTORY . DIRECTORY_SEPARATOR . self::$log_file_name . '.txt', $string, FILE_APPEND);
         return $response != false ? true : false;
     }
