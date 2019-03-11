@@ -322,21 +322,17 @@ class Dev
             if($th instanceof \Exception) {
                 Dev::log('X EXCEPTION! == ' . $th->getMessage());
                 Dev::log($th->getTraceAsString());
-                throw new \Exception($e->getMessage(), $th->getCode());
+                throw new \Exception($th->getMessage(), $th->getCode());
             } elseif($th instanceof \Error) {
                 Dev::log('X ERROR! == ' . $th->getMessage());
                 Dev::log($th->getTraceAsString());
-                throw new \Error($e->getMessage(), $th->getCode());
+                throw new \Error($th->getMessage(), $th->getCode());
             } else {
                 Dev::log('X ' . strtoupper(get_class($th)) . '! == ' . $th->getMessage());
                 Dev::log($th->getTraceAsString());
                 $class = get_class($th);
-                throw new $class($e->getMessage(), $th->getCode());
+                throw new $class($th->getMessage(), $th->getCode());
             }
-
-            Dev::log($th->getTraceAsString());
-
-            throw new \Exception($e->getMessage(), $th->getCode());
         };
 
         set_exception_handler($handler); 
