@@ -341,7 +341,7 @@ class Dev
 
         set_exception_handler($handler); 
 
-        set_error_handler($handler)
+        set_error_handler($handler);
     }
 
     public static function restoreExceptionHanler()
