@@ -167,6 +167,18 @@ class ArrayHelper
         return preg_replace('/\[(\d*)\]/', '$1', $query);
     }
 
+    public static function containsUnAcceptedElements(array $accepted, array $provided, &$unaccepted) : bool
+    {
+        $unaccepted = [];
+
+        foreach($provided as $item) {
+            if(!in_array($item, $accepted)) {
+                $unaccepted[] = $item;
+            }
+        }
+
+        return empty($unaccepted) ? false : true;
+    }
 
     public static function requiredPramatersAreSet(array $parameters, array $data, &$missing, bool $strict = false) : bool
     {
