@@ -53,6 +53,11 @@ class StringHelper
         }
     }
 
+    public static function explodeCamelCase(string $string) : array
+    {
+        preg_match_all('/((?:^|[A-Z])[a-z]+)/', $string, $matches);
+        return $matches[0];
+    }
 
 
 }
