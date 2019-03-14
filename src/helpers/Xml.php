@@ -2,6 +2,10 @@
 
 namespace SouthCoast\Helpers;
 
+use SouthCoast\Helpers\Objects\XmlObject;
+
+use XMLReader;
+
 class Xml
 {
     public static function isValid(string $xml): bool
@@ -17,14 +21,14 @@ class Xml
         return $valid; 
     }
 
-    public static function stringify($data): string
+    public static function stringify(string $openingTag, array $data, $version = '1.0'): string
     {
-        # code...
+        return (new XmlObject($openingTag, $version))->loadArray($data)->getXml();
     }
 
-    public static function encode($data): string
+    public static function encode(string $openingTag, array $data, $version = '1.0'): string
     {
-        return self::stringify($data);
+        return self::stringify($openingTag, $data, $version);
     }
 
     public static function parse(string $string, $array = true)

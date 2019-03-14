@@ -12,7 +12,7 @@ class StringHelper
         return preg_match('/' . $needle . '/', $string) == 1 ? true : false;
     }
 
-    public function startsWith(string $needle, string $string)
+    public static function startsWith(string $needle, string $string)
     {
         return $needle === substr($string, 0, strlen($needle)) ? true : false;
     }

@@ -62,10 +62,8 @@ abstract class Env
         self::$enviroment = $content_array;
 
         if (!$reload) {
-            self::defineConstants(self::$enviroment);
+            // self::defineConstants(self::$enviroment);
         }
-
-        // self::defineVariables(self::$enviroment);
 
         return true;
     }
@@ -79,17 +77,15 @@ abstract class Env
         self::load(self::$env_path, true);
     }
 
-    public static function defineVariables(array $enviroment)
-    {
-        foreach ($enviroment as $name => $value) {
-            try {
-                self::${$name} = $value;
-            } catch (\Throwable $th) {
-                throw new EnvError(EnvError::EXCEPTION_THROWN, ['Message' => $th->getMessage(), 'trace' => $th->getTrace()]);
-            }
-        }
-    }
 
+    /**
+     * Defines Global Contants
+     *
+     * @param array $enviroment
+     * @return void
+     * 
+     * CURRENTLY DEPRICATED
+     */
     public static function defineConstants(array $enviroment)
     {
         foreach ($enviroment as $name => $value) {
@@ -107,26 +103,22 @@ abstract class Env
 
     public static function simulateProduction()
     {
-        # code...
+        self::$enviroment['dev'] = false;
     }
 
-    public function __get(string $name)
+    public function get(string $name)
     {
-        return self::isset($name) ? self::$enviroment[$name] : void;
+        return ArrayHelper::get($name, self::$enviroment);
     }
 
-    public function __set(string $name, $value)
+    public static function __callStatic(string $name, $arguments = null)
     {
-        if (self::isset($name)) {
-            throw new EnvError(EnvError::OVERRIDE_PROTECTION);
-        }
-
-        self::$enviroment[$name] = $value;
+        return self::isset($name) ? self::$enviroment[$name] : null;
     }
 
-    public function __isset(string $name) : bool
+    public static function isset($name) : bool
     {
-        return isset(self::$enviroment[$name]);
+        return (ArrayHelper::get($name, self::$enviroment) !== false) ? true : false;
     }
 
     public static function isDev() : bool
@@ -149,23 +141,6 @@ abstract class Env
         return !empty(self::$enviroment) ? true : false;
     }
 
-
-    static public function __callStatic($method, $args)
-    {
-        if (preg_match('/^([gs]et)([A-Z])(.*)$/', $method, $match)) {
-            switch ($match[1]) {
-                case 'set':
-                    self::$enviroment[$args[0]] = $args[1];
-                    break;
-
-                case 'get':
-                    return self::$enviroment[$args[0]];
-                    break;
-            }
-        } else {
-            throw new InvalidArgumentException("Property {$args[0]} doesn't exist.");
-        }
-    }
 }
 
 

@@ -489,4 +489,13 @@ class ArrayHelper
         }
     }
 
+    public static function clean(array &$array) : array
+    {
+        array_walk_recursive($array, function(&$item, $key) {
+            $item = htmlspecialchars($item);
+        });
+
+        return $array;
+    }
+
 }
