@@ -1,4 +1,7 @@
 # SouthCoast | Helpers
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d07fb7f35120486cae0a04da67dd8bd2)](https://app.codacy.com/app/corne.dejong/southcoast-helpers?utm_source=github.com&utm_medium=referral&utm_content=cornejong/southcoast-helpers&utm_campaign=Badge_Grade_Dashboard)
+
 A Collection of helper classes for PHP
 
 Could be installed via composer:
