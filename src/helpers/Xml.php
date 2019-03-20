@@ -3,7 +3,7 @@
 namespace SouthCoast\Helpers;
 
 use SouthCoast\Helpers\Objects\XmlObject;
-
+use SouthCoast\Helpers\StringHelper;
 use XMLReader;
 
 class Xml
@@ -18,7 +18,7 @@ class Xml
         $reader->close();
         unset($reader);
 
-        return $valid; 
+        return $valid;
     }
 
     public static function stringify(string $openingTag, array $data, $version = '1.0'): string
@@ -57,5 +57,26 @@ class Xml
         $array = ArrayHelper::sanitize($array);
 
         return ArrayHelper::objectify($array);
+    }
+
+    /**
+     * Removes all the '@' symbols from the attributes keys
+     *
+     * @param array $array
+     * @return array
+     */
+    public static function cleanup(array $array): array
+    {
+        $tmp = [];
+        foreach ($array as $key => $element) {
+
+            if (StringHelper::startsWith('@', $key)) {
+                $key = ltrim($key, '@');
+            }
+
+            $tmp[$key] = (is_array($element)) ? self::cleanup($element) : $element;
+        }
+
+        return $tmp;
     }
 }

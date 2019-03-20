@@ -8,6 +8,7 @@ use \Countable;
 use \Exception;
 
 use SouthCoast\Helpers\ArrayHelper;
+use SouthCoast\Helpers\Json;
 
 class Collection implements ArrayAccess, IteratorAggregate, Countable
 {
@@ -26,6 +27,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable
     public function load(array $data) : bool
     {
         $this->status = self::STATUS_LOADED;
+        $data = ArrayHelper::sanitize($data);
         return ($this->data = $data) ? true : false;
     }
 
@@ -96,5 +98,30 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable
     public function contains(string $element, bool $strict = true) : bool
     {
         return in_array($element, $this->data, $strict) ? true : false;
+    }
+
+    public function get(string $query)
+    {
+        return ArrayHelper::get($query, $this->data);
+    }
+
+    public function search(string $query, &$found, bool $strict = false)
+    {
+        return ArrayHelper::searchByQuery($query, $this->data, $found, $strict);
+    }
+
+    public function asJson()
+    {
+        return Json::prettyEncode($this->data);
+    }
+
+    public function asArray()
+    {
+        return ArrayHelper::sanitize($this->data);
+    }
+
+    public function hibernate()
+    {
+        return serialize($this);
     }
 }

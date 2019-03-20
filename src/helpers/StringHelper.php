@@ -6,10 +6,10 @@ use \Error;
 
 class StringHelper
 {
-    
+
     public static function contains(string $needle, string $string)
     {
-        return preg_match('/' . $needle . '/', $string) == 1 ? true : false;
+        return strpos($string, $needle) !== false ? true : false;
     }
 
     public static function startsWith(string $needle, string $string)
@@ -28,13 +28,13 @@ class StringHelper
             case 'string':
                 return (string) $data;
                 break;
-            
+
             case 'integer':
             case 'double':
                 return '' . $data . '';
                 break;
 
-            case 'boolean': 
+            case 'boolean':
                 return (string) ($data) ? 'true' : false;
                 break;
 
@@ -45,19 +45,17 @@ class StringHelper
             case 'array':
             case 'object':
                 return strval($data);
-                break;          
+                break;
 
             default:
-                throw new Error('Unsupported Type for to string conversion! Provided Type: ' . gettype($data), 1);                
+                throw new Error('Unsupported Type for to string conversion! Provided Type: ' . gettype($data), 1);
                 break;
         }
     }
 
-    public static function explodeCamelCase(string $string) : array
+    public static function explodeCamelCase(string $string): array
     {
         preg_match_all('/((?:^|[A-Z])[a-z]+)/', $string, $matches);
         return $matches[0];
     }
-
-
 }

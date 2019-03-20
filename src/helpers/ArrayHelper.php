@@ -6,7 +6,6 @@
  * Copyright (c) 2019 SouthCoast
  */
 
-
 namespace SouthCoast\Helpers;
 
 /**
@@ -31,8 +30,6 @@ class ArrayHelper
 
     const FLAT_QUERY_EXPRESSION_SEPERATOR = '\.';
 
-
-
     /**
      * Sanitizes the provided data, mainly designed for cleaning up objects or classes
      *
@@ -52,7 +49,7 @@ class ArrayHelper
      * @param boolean $array        Should it return an array? (if false, will return a StdClass object)
      * @return void                 Returns nothing, data is passed by reference
      */
-    public static function sanitizer(&$data, bool $array = true) : void
+    public static function sanitizer(&$data, bool $array = true): void
     {
         $data = self::sanitize($data, $array);
     }
@@ -70,8 +67,8 @@ class ArrayHelper
 
     /**
      * Checks if the provided keys are set in the array
-     * fills the $missing array with the missing keys 
-     * 
+     * fills the $missing array with the missing keys
+     *
      * Checks only for missing keys, not for empty values
      *
      * @param array $keys       The keys that should be set
@@ -80,16 +77,16 @@ class ArrayHelper
      * @param boolean $strict   Enter Strict mode (default off)
      * @return boolean          Returns true if all keys where pressent, false if not
      */
-    public static function keysAreSet(array $keys, array $array, &$missing, bool $strict = false) : bool
+    public static function keysAreSet(array $keys, array $array, &$missing, bool $strict = false): bool
     {
         $missing = [];
 
-        if(is_object($array)) {
+        if (is_object($array)) {
             self::sanitizer($array);
         }
 
-        foreach($keys as $key) {
-            if(!in_array($key, $array, $strict)) {
+        foreach ($keys as $key) {
+            if (!in_array($key, $array, $strict)) {
                 $missing[] = $key;
             }
         }
@@ -105,12 +102,12 @@ class ArrayHelper
      * @param boolean $strict
      * @return void
      */
-    public static function search($value, array $array, bool $strict = false) 
+    public static function search($value, array $array, bool $strict = false)
     {
         $flat_array = self::flatten($array);
         $found = array_search($value, $flat_array, $strict);
 
-        if(!$found) {
+        if (!$found) {
             return false;
         }
 
@@ -120,7 +117,7 @@ class ArrayHelper
         // return self::cleanupRebuild($dove);
     }
 
-    public static function searchByQuery(string $query, array $array, &$found = null, bool $strict = false) : bool
+    public static function searchByQuery(string $query, array $array, &$found = null, bool $strict = false): bool
     {
         $flat_array = self::flatten($array);
         $query = self::renderSearchQuery($query);
@@ -129,24 +126,24 @@ class ArrayHelper
 
         foreach (self::get($query['string'], $array, true, false) as $key => $value) {
 
-            if(preg_match($query['pattern'], $key, $matches)) {
+            if (preg_match($query['pattern'], $key, $matches)) {
                 $strict_statement = ($value === $query['requested_value']);
                 $non_strict_statenent = ($value == $query['requested_value']);
 
-                if(($strict && $strict_statement) || (!$strict && $non_strict_statenent)) {
+                if (($strict && $strict_statement) || (!$strict && $non_strict_statenent)) {
                     $found[] = self::cleanUpFlatQueryString($key);
                 }
-            } 
+            }
         }
 
-        if(count($found) == 1) {
+        if (count($found) == 1) {
             $found = $found[0];
         }
 
         return (empty($found)) ? false : true;
     }
 
-    public static function renderSearchQuery(string $query) : array
+    public static function renderSearchQuery(string $query): array
     {
         $query_array = explode(' ', $query);
 
@@ -167,12 +164,12 @@ class ArrayHelper
         return preg_replace('/\[(\d*)\]/', '$1', $query);
     }
 
-    public static function containsUnAcceptedElements(array $accepted, array $provided, &$unaccepted) : bool
+    public static function containsUnAcceptedElements(array $accepted, array $provided, &$unaccepted): bool
     {
         $unaccepted = [];
 
-        foreach($provided as $item) {
-            if(!in_array($item, $accepted)) {
+        foreach ($provided as $item) {
+            if (!in_array($item, $accepted)) {
                 $unaccepted[] = $item;
             }
         }
@@ -180,95 +177,94 @@ class ArrayHelper
         return empty($unaccepted) ? false : true;
     }
 
-    public static function requiredPramatersAreSet(array $parameters, array $data, &$missing, bool $strict = false) : bool
+    public static function requiredPramatersAreSet(array $parameters, array $data, &$missing, bool $strict = false): bool
     {
         $missing = [];
         $isAssoc = false;
 
         /* If the array is associative */
-        if(self::isAssoc($data)) {
+        if (self::isAssoc($data)) {
             $isAssoc = true;
-            $data = array_keys($data);   
-        } 
+            $data = array_keys($data);
+        }
 
-        foreach($parameters as $param) {
-            if(!in_array($param, $data, $strict)) {
+        foreach ($parameters as $param) {
+            if (!in_array($param, $data, $strict)) {
                 $missing[] = $param;
             }
 
-            if($isAssoc && !in_array($param, $missing) && empty($data[$param])) {
+            if ($isAssoc && !in_array($param, $missing) && empty($data[$param])) {
                 $missing[] = $param;
             }
         }
 
         return (empty($missing)) ? true : false;
     }
-    
-    public static function flatten($input, $parent = null) : array
+
+    public static function flatten($input, $parent = null): array
     {
         $array = [];
-        
-        foreach($input as $key => $value) {
-            if(is_numeric($key)) {
+
+        foreach ($input as $key => $value) {
+            if (is_numeric($key)) {
                 $key = '[' . $key . ']';
             }
-            
-            if(is_array($value)) {
+
+            if (is_array($value)) {
                 $array = array_merge_recursive($array, self::flatten($value, (isset($parent) ? $parent . '.' : '') . $key));
             } else {
                 $array[(isset($parent) ? $parent . '.' : '') . $key] = $value;
             }
         }
-        
+
         return $array;
     }
-    
+
     public static function arrayDive(array $keys, $array)
     {
-        $return = [];   
+        $return = [];
         $index = array_shift($keys);
-        
-        if(!isset($keys[0])) {
+
+        if (!isset($keys[0])) {
             return $array;
-        } else {   
-            $return = self::makeArray($keys,$array[$index]);    
+        } else {
+            $return = self::makeArray($keys, $array[$index]);
         }
-        
+
         return $array;
     }
 
     public static function makeArray(array $keys, $value)
     {
-        $array = [];   
+        $array = [];
         $index = (string) array_shift($keys);
-        
-        if(count($keys) == 0){
+
+        if (count($keys) == 0) {
             $array[$index] = $value;
-        } else {   
-            $array[$index] = self::makeArray($keys,$value);    
+        } else {
+            $array[$index] = self::makeArray($keys, $value);
         }
-    
+
         return $array;
     }
-    
-    
-    public static function rebuildArray(array $map) : array
+
+    public static function rebuildArray(array $map): array
     {
         $array = [];
-    
-        foreach($map as $key => $value) {
+
+        foreach ($map as $key => $value) {
             $key_array = explode('.', $key);
-            if(count($key_array) == 1) {
+            if (count($key_array) == 1) {
                 $array["{$key}"] = $value;
             } else {
                 $array = array_merge_recursive($array, self::makeArray($key_array, $value));
             }
         }
-        
+
         return self::cleanupRebuild($array);
     }
 
-    public static function cleanupRebuild(array $array) : array
+    public static function cleanupRebuild(array $array): array
     {
         return json_decode(preg_replace('/\[(\d*)\]/', '$1', json_encode($array)), true);
     }
@@ -281,27 +277,27 @@ class ArrayHelper
         $tmp = [];
 
         foreach ($flat as $key => $value) {
-            if(preg_match($pattern, $key, $matches)) {
-                if($subtractQuery) {
+            if (preg_match($pattern, $key, $matches)) {
+                if ($subtractQuery) {
                     $newKey = str_replace(self::buildFlatQueryString($query), '', $key);
 
-                    if($newKey != '' && $newKey[0] == '.') {
+                    if ($newKey != '' && $newKey[0] == '.') {
                         $newKey = ltrim($newKey, '.');
                     }
 
-                    $tmp[(empty($newKey)) ? : $newKey] = $value;
+                    $tmp[(empty($newKey)) ?: $newKey] = $value;
 
                 } else {
                     $tmp[$key] = $value;
-                }  
+                }
             }
         }
 
-        if(empty($tmp)) {
+        if (empty($tmp)) {
             return null;
         }
-            
-        if(count($tmp) == 1) {
+
+        if (count($tmp) == 1) {
             $key = array_keys($tmp)[0];
             $rebuild = $tmp[$key];
         } else {
@@ -311,6 +307,19 @@ class ArrayHelper
         return ($doRebuild) ? $rebuild : $tmp;
     }
 
+    public static function add(string $index, $value, array $data)
+    {
+        if (is_array($value)) {
+            $tmp = self::flatten($value, $index);
+        } else {
+            $tmp = [$index => $value];
+        }
+
+        $merged = array_merge($data, $tmp);
+
+        return self::rebuildArray($tmp);
+    }
+
     public static function getParent(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
     {
         $query_array = explode('.', $query);
@@ -318,23 +327,24 @@ class ArrayHelper
         return self::get(implode('.', $query_array), $array, $subtractQuery, $doRebuild);
     }
 
-    public static function getMultiple(array $array, ...$queries) {
+    public static function getMultiple(array $array, ...$queries)
+    {
         $tmp = [];
 
-        foreach($queries as $query) {
+        foreach ($queries as $query) {
             $tmp = array_merge_recursive($tmp, self::get($query, $array, true, false));
         }
 
         return self::rebuildArray($tmp);
     }
 
-    public static function buildFlatQueryString(string $query) : string
+    public static function buildFlatQueryString(string $query): string
     {
         $string = '';
 
-        foreach(explode('.', $query) as $index => $i) {
+        foreach (explode('.', $query) as $index => $i) {
 
-            if(is_numeric($i)) {
+            if (is_numeric($i)) {
                 $i = '[' . $i . ']';
             }
 
@@ -344,15 +354,15 @@ class ArrayHelper
         return $string;
     }
 
-    public static function buildFlatQueryExpression(string $query) : string
+    public static function buildFlatQueryExpression(string $query): string
     {
         $expression = self::FLAT_QUERY_EXPRESSION_OPENER;
 
-        foreach(explode('.', $query) as $index => $i) {
+        foreach (explode('.', $query) as $index => $i) {
 
-            if(is_numeric($i)) {
+            if (is_numeric($i)) {
                 $i = self::FLAT_QUERY_EXPRESSION_NUMERIC_OPEN . $i . self::FLAT_QUERY_EXPRESSION_NUMERIC_CLOSE;
-            } elseif($i == '?') {
+            } elseif ($i == '?') {
                 $i = self::FLAT_QUERY_EXPRESSION_WILDCARD;
             } else {
                 $i = self::FLAT_QUERY_EXPRESSION_STRING_OPEN . $i . self::FLAT_QUERY_EXPRESSION_STRING_CLOSE;
@@ -382,14 +392,14 @@ class ArrayHelper
      * @param mixed $array
      * @return integer
      */
-    public function recursiveCount($array) : int
+    public function recursiveCount($array): int
     {
         return (int) count($array, COUNT_RECURSIVE);
     }
 
     /**
      * indexes the provided Array by the index
-     * Additionaliy you van provide a callable function 
+     * Additionaliy you van provide a callable function
      *
      * @param array $array
      * @param string $index
@@ -427,13 +437,12 @@ class ArrayHelper
         return ($returnObject) ? self::objectify($tmp) : self::sanitize($tmp);
     }
 
-
     /**
      * Maps the values of the $array to new keys
      * Adds support for multidimentional arrays
-     * 
+     *
      * $map = [
-     *      The KEY is the to be used key for the Array 
+     *      The KEY is the to be used key for the Array
      *      'field' is the value origin
      *      'Name' => ['field' => 'name'],
      *      Add 'value' to add custom value or value mutation
@@ -448,7 +457,7 @@ class ArrayHelper
      * @param array $map
      * @param array $array
      * @return array
-     * 
+     *
      * @todo add checks for keys and strict null allowing
      */
     public static function map(array $map, array $array, $strict = false)
@@ -456,13 +465,12 @@ class ArrayHelper
         $array = self::flatten($array);
 
         $tmp = [];
-        foreach($map as $key => $item) {
+        foreach ($map as $key => $item) {
             $tmp[$key] = (isset($item['value'])) ? $item['value'] : self::get($item['field'], $array); // $array[$item['field']];
         }
 
         return self::rebuildArray($tmp);
     }
-
 
     public static function manage()
     {
@@ -484,14 +492,14 @@ class ArrayHelper
 
     public static function walk(array &$array, $callback, ...$parameters)
     {
-        foreach($array as &$element) {
+        foreach ($array as &$element) {
             $callback($element, ...$parameters);
         }
     }
 
-    public static function clean(array &$array) : array
+    public static function clean(array &$array): array
     {
-        array_walk_recursive($array, function(&$item, $key) {
+        array_walk_recursive($array, function (&$item, $key) {
             $item = htmlspecialchars($item);
         });
 
