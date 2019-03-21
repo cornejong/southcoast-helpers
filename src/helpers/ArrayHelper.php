@@ -9,7 +9,7 @@
 namespace SouthCoast\Helpers;
 
 /**
- * A toolset for working with arrays in php
+ * A tool set for working with arrays in php
  * @author SouthCoast <hello@southcoast.tech>
  * @category Helper
  * @version 1.0.0
