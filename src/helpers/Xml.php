@@ -38,10 +38,6 @@ class Xml
 
     public static function parseToArray(string $data)
     {
-        if (!self::isValid($data)) {
-            return false;
-        }
-
         $array = simplexml_load_string($data);
 
         return ArrayHelper::sanitize($array);
@@ -49,10 +45,6 @@ class Xml
 
     public static function parseToObject(string $data)
     {
-        if (!self::isValid($data)) {
-            return false;
-        }
-
         $array = simplexml_load_string($data);
         $array = ArrayHelper::sanitize($array);
 
