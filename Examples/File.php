@@ -6,7 +6,7 @@ File::defineDirectory('dir_identifier', '/Path/To/Dir');
 File::list();
 File::list('$dir_identifier');
 
-File::list(File::BaseDirectory, 'txt');
+File::list(File::BASE_DIRECTORY, 'txt');
 
 /* Save file to defined directory */
 File::save('$dir_identifier/thisname.tmp', $data);
@@ -18,14 +18,14 @@ File::saveJson('thisname', $data, File::Minified);
 
 File::getJson('thisname', true);
 
-File::saveCsv('thiscsv', $data, true||[]);
+File::saveCsv('thiscsv', $data, true || []);
 
 File::getCsv('thiscsv', true);
 
 /* Open a Write Stream to a file */
 $stream = File::writeStream('anothername.txt');
 /* Loop over all lines in a file */
-foreach(File::readStream('thisname') as $line) {
+foreach (File::readStream('thisname') as $line) {
     $stream->write($line);
 }
 /* Close the stream */
