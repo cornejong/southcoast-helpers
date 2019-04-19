@@ -28,7 +28,7 @@ class ArrayHelper
     const FLAT_QUERY_EXPRESSION_NUMERIC_OPEN = '(\[';
     const FLAT_QUERY_EXPRESSION_NUMERIC_CLOSE = '\])';
 
-    const FLAT_QUERY_EXPRESSION_SEPERATOR = '\.';
+    const FLAT_QUERY_EXPRESSION_SEPARATOR = '\.';
 
     /**
      * Sanitizes the provided data, mainly designed for cleaning up objects or classes
@@ -117,6 +117,12 @@ class ArrayHelper
         // return self::cleanupRebuild($dove);
     }
 
+    /**
+     * @param string $query
+     * @param array $array
+     * @param $found
+     * @param nullbool $strict
+     */
     public static function searchByQuery(string $query, array $array, &$found = null, bool $strict = false): bool
     {
         $flat_array = self::flatten($array);
@@ -125,7 +131,6 @@ class ArrayHelper
         $found = [];
 
         foreach (self::get($query['string'], $array, true, false) as $key => $value) {
-
             if (preg_match($query['pattern'], $key, $matches)) {
                 $strict_statement = ($value === $query['requested_value']);
                 $non_strict_statenent = ($value == $query['requested_value']);
@@ -143,6 +148,9 @@ class ArrayHelper
         return (empty($found)) ? false : true;
     }
 
+    /**
+     * @param string $query
+     */
     public static function renderSearchQuery(string $query): array
     {
         $query_array = explode(' ', $query);
@@ -159,11 +167,19 @@ class ArrayHelper
         ];
     }
 
+    /**
+     * @param string $query
+     */
     public static function cleanUpFlatQueryString(string $query)
     {
         return preg_replace('/\[(\d*)\]/', '$1', $query);
     }
 
+    /**
+     * @param array $accepted
+     * @param array $provided
+     * @param $unaccepted
+     */
     public static function containsUnAcceptedElements(array $accepted, array $provided, &$unaccepted): bool
     {
         $unaccepted = [];
@@ -177,6 +193,12 @@ class ArrayHelper
         return empty($unaccepted) ? false : true;
     }
 
+    /**
+     * @param array $parameters
+     * @param array $data
+     * @param $missing
+     * @param bool $strict
+     */
     public static function requiredPramatersAreSet(array $parameters, array $data, &$missing, bool $strict = false): bool
     {
         $missing = [];
@@ -201,6 +223,11 @@ class ArrayHelper
         return (empty($missing)) ? true : false;
     }
 
+    /**
+     * @param $input
+     * @param $parent
+     * @return mixed
+     */
     public static function flatten($input, $parent = null): array
     {
         $array = [];
@@ -220,6 +247,11 @@ class ArrayHelper
         return $array;
     }
 
+    /**
+     * @param array $keys
+     * @param $array
+     * @return mixed
+     */
     public static function arrayDive(array $keys, $array)
     {
         $return = [];
@@ -234,6 +266,11 @@ class ArrayHelper
         return $array;
     }
 
+    /**
+     * @param array $keys
+     * @param $value
+     * @return mixed
+     */
     public static function makeArray(array $keys, $value)
     {
         $array = [];
@@ -248,6 +285,9 @@ class ArrayHelper
         return $array;
     }
 
+    /**
+     * @param array $map
+     */
     public static function rebuildArray(array $map): array
     {
         $array = [];
@@ -264,11 +304,20 @@ class ArrayHelper
         return self::cleanupRebuild($array);
     }
 
+    /**
+     * @param array $array
+     */
     public static function cleanupRebuild(array $array): array
     {
         return json_decode(preg_replace('/\[(\d*)\]/', '$1', json_encode($array)), true);
     }
 
+    /**
+     * @param string $query
+     * @param array $array
+     * @param bool $subtractQuery
+     * @param truebool $doRebuild
+     */
     public static function get(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
     {
         $flat = self::flatten($array);
@@ -286,7 +335,6 @@ class ArrayHelper
                     }
 
                     $tmp[(empty($newKey)) ?: $newKey] = $value;
-
                 } else {
                     $tmp[$key] = $value;
                 }
@@ -307,6 +355,11 @@ class ArrayHelper
         return ($doRebuild) ? $rebuild : $tmp;
     }
 
+    /**
+     * @param string $index
+     * @param $value
+     * @param array $data
+     */
     public static function add(string $index, $value, array $data)
     {
         if (is_array($value)) {
@@ -320,6 +373,12 @@ class ArrayHelper
         return self::rebuildArray($tmp);
     }
 
+    /**
+     * @param string $query
+     * @param array $array
+     * @param bool $subtractQuery
+     * @param bool $doRebuild
+     */
     public static function getParent(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
     {
         $query_array = explode('.', $query);
@@ -327,6 +386,10 @@ class ArrayHelper
         return self::get(implode('.', $query_array), $array, $subtractQuery, $doRebuild);
     }
 
+    /**
+     * @param array $array
+     * @param $queries
+     */
     public static function getMultiple(array $array, ...$queries)
     {
         $tmp = [];
@@ -338,12 +401,15 @@ class ArrayHelper
         return self::rebuildArray($tmp);
     }
 
+    /**
+     * @param string $query
+     * @return mixed
+     */
     public static function buildFlatQueryString(string $query): string
     {
         $string = '';
 
         foreach (explode('.', $query) as $index => $i) {
-
             if (is_numeric($i)) {
                 $i = '[' . $i . ']';
             }
@@ -354,12 +420,15 @@ class ArrayHelper
         return $string;
     }
 
+    /**
+     * @param string $query
+     * @return mixed
+     */
     public static function buildFlatQueryExpression(string $query): string
     {
         $expression = self::FLAT_QUERY_EXPRESSION_OPENER;
 
         foreach (explode('.', $query) as $index => $i) {
-
             if (is_numeric($i)) {
                 $i = self::FLAT_QUERY_EXPRESSION_NUMERIC_OPEN . $i . self::FLAT_QUERY_EXPRESSION_NUMERIC_CLOSE;
             } elseif ($i == '?') {
@@ -368,7 +437,7 @@ class ArrayHelper
                 $i = self::FLAT_QUERY_EXPRESSION_STRING_OPEN . $i . self::FLAT_QUERY_EXPRESSION_STRING_CLOSE;
             }
 
-            $expression .= ($index == 0) ? $i : self::FLAT_QUERY_EXPRESSION_SEPERATOR . $i;
+            $expression .= ($index == 0) ? $i : self::FLAT_QUERY_EXPRESSION_SEPARATOR . $i;
         }
 
         $expression .= self::FLAT_QUERY_EXPRESSION_CLOSER;
@@ -376,12 +445,18 @@ class ArrayHelper
         return $expression;
     }
 
+    /**
+     * @param array $array
+     */
     public static function isAssoc(array $array)
     {
+        /* Check if its empty */
         if ([] === $array) {
+            /* Than it can in no way be an associative array */
             return false;
         }
 
+        /* Check if the array keys are basically a number range */
         return array_keys($array) !== range(0, count($array) - 1);
     }
 
@@ -408,7 +483,7 @@ class ArrayHelper
      * @param bool $skipIfMissing = false
      * @return array
      */
-    public static function index(array $array, string $index, callable $callback = null, bool $returnObject = false, bool $skipIfMissing = false)
+    public static function index(array $array, string $index, callable $callback = null, bool $skipIfMissing = true)
     {
         $tmp = [];
 
@@ -434,7 +509,7 @@ class ArrayHelper
             }
         }
 
-        return ($returnObject) ? self::objectify($tmp) : self::sanitize($tmp);
+        return self::sanitize($tmp);
     }
 
     /**
@@ -460,15 +535,24 @@ class ArrayHelper
      *
      * @todo add checks for keys and strict null allowing
      */
-    public static function map(array $map, array $array, $strict = false)
+    public static function map(array $map, array $array)
     {
+        /* First, flatten the array */
         $array = self::flatten($array);
 
+        /* Create the temp array */
         $tmp = [];
+        /* Loop over all the values in the mapping */
         foreach ($map as $key => $item) {
-            $tmp[$key] = (isset($item['value'])) ? $item['value'] : self::get($item['field'], $array); // $array[$item['field']];
+            /* Check if the field value is a string */
+            if (!is_string($item['field'])) {
+                /* if not, throw an Exception */
+                throw new \Exception('The field value should be a string! Key: \'' . $key . '\'', 1);
+            }
+            /* Add the value to the array, if there was a value key provided use that value. or get it from the array */
+            $tmp[$key] = (array_key_exists('value', $item)) ? $item['value'] : self::get($item['field'], $array);
         }
-
+        /* Return the rebuild array */
         return self::rebuildArray($tmp);
     }
 
@@ -490,6 +574,12 @@ class ArrayHelper
         # code...
     }
 
+    /**
+     * @param $array
+     * @param $callback
+     * @param $parameters
+     * @return void
+     */
     public static function walk(array &$array, $callback, ...$parameters)
     {
         foreach ($array as &$element) {
@@ -497,13 +587,37 @@ class ArrayHelper
         }
     }
 
+    /**
+     * Cleans all the values in the provided array
+     *
+     * @param $array        The to-be cleaned array
+     * @return mixed        The cleaned array
+     */
     public static function clean(array &$array): array
     {
+        /* loop overt all the values in the array */
         array_walk_recursive($array, function (&$item, $key) {
-            $item = htmlspecialchars($item);
+            /* Check if the value is a string */
+            if (is_string($item)) {
+                /* Clean the string */
+                $item = StringHelper::clean($item);
+            }
         });
-
+        /* Return the cleaned array */
         return $array;
     }
 
+    /**
+     * Splits the array keys and values into separate arrays
+     *
+     * @param array $array
+     * @return array
+     */
+    public static function split(array $array): array
+    {
+        return [
+            array_keys($array),
+            array_values($array),
+        ];
+    }
 }
