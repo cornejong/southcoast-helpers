@@ -124,7 +124,7 @@ class File
      * @param string $path
      * @return bool
      */
-    public static function isKnownDirectory(string &$path): bool
+    public static function isKnownDirectory(string $path): bool
     {
         /* Check if the path starts with the identifier token */
         if (!StringHelper::startsWith(self::DIRECTORY_MAP_IDENTIFIER, $path)) {
@@ -166,15 +166,15 @@ class File
     {
         /* Check if this is a predefined directory */
         if (self::isKnownDirectory($path)) {
-            /* get the identifier */
-            $identifier = self::extractIdentifier($path);
             /* get the real path to the directory */
-            $path = self::getRealPath($identifier, $path);
+            $path = self::getRealPath($path);
         }
+
         /* Check if this is a valid path */
         if (!Validate::path($path)) {
             throw new FileError(FileError::NOT_VALID_PATH, $path);
         }
+
         /* return the path */
         return $path;
     }
@@ -182,18 +182,23 @@ class File
     /**
      * Returns the real path to the identifier path
      *
-     * @param string $identifier
-     * @param string $path
-     * @return string
-     * @throws FileError
+     * Example:
+     *      File::getRealPath('cache/some_cached_file.tmp') = '/path/to/cache/directory/some_cached_file.tmp';
+     *      File::getRealPath('cache') = '/path/to/cache/directory';
+     *
+     * @param string $path              The file or directory path based on the identifier
+     * @return string                   The full actual path to the file or directory
+     * @throws FileError                If: UNKNOWN_DIRECTORY_IDENTIFIER
      */
-    public static function getRealPath(string $identifier, string $path): string
+    public static function getRealPath(string $path): string
     {
         /* Check if this is a known identifier */
         if (!self::isKnownIdentifier($identifier)) {
             throw new FileError(FileError::UNKNOWN_DIRECTORY_IDENTIFIER, $identifier);
         }
 
+        /* get the identifier */
+        $identifier = self::extractIdentifier($path);
         /* Get the directory path from the identifier */
         $directory_path = self::getPathFromIdentifier($identifier);
 
@@ -219,8 +224,11 @@ class File
     /**
      * Cleans up the path to get a consistent format
      *
-     * @param string $path
-     * @return string
+     * Example:
+     *      File::cleanUpPath('/foo/bar/foobar/') = '/foo/bar/foobar';
+     *
+     * @param string $path              The to-be cleaned path
+     * @return string                   The cleaned path
      */
     public static function cleanUpPath(string $path): string
     {
@@ -234,8 +242,9 @@ class File
     /**
      * Returns the path associated with the identifier
      *
-     * @param string $identifier
-     * @throws FileError
+     * @param string $identifier        The directory identifier
+     * @return string                   The full path to the directory
+     * @throws FileError                If: UNKNOWN_DIRECTORY_IDENTIFIER
      */
     public static function getPathFromIdentifier(string $identifier): string
     {
@@ -250,10 +259,13 @@ class File
     /**
      * Defines a directory by its identifier
      *
-     * @param string $identifier
-     * @param string $path
+     * Example:
+     *      File::defineDirectory('cache', '/the/full/path/to/the/dir');
+     *
+     * @param string $identifier        The directory identifier
+     * @param string $path              The full path to the directory
      * @return void
-     * @throws FileError
+     * @throws FileError                If: NOT_VALID_PATH, NOT_A_DIRECTORY, IDENTIFIER_ALREADY_IN_USE
      */
     public static function defineDirectory(string $identifier, string $path)
     {
@@ -343,7 +355,7 @@ class File
         }
 
         /* Finally remove the directory itself */
-        @rmdir($directory);
+        return @rmdir($directory);
     }
 
     /**
@@ -380,6 +392,97 @@ class File
 
         /* Return the list */
         return $list;
+    }
+
+    /**
+     * Get the extension of a file
+     *
+     * Example:
+     *      File::getExtension('$base_directory/myAwesomeFile.txt') = 'txt';
+     *      File::getExtension('$cache_directory/some_cached_file') = null;
+     *
+     * @param string $file          The file for which you want the extension
+     * @return string|null          Returns a string with the extension, null if non found
+     */
+    public function getExtension(string $file)
+    {
+        /* Get the real path to the directory */
+        $path = self::getPath($file);
+        /* Explode the file's basename by the '.' */
+        $file_name_array = explode('.', basename($oath));
+        /* Check if there are more than 1 items in the array */
+        if (count($file_name_array) === 1) {
+            /* If there aren't, there is no extension, so return null */
+            return null;
+        }
+        /* return the last item in the exploded array */
+        return $file_name_array[array_key_last($file_name_array)];
+    }
+
+    /**
+     * Change the extension of an existing file
+     *
+     * Example:
+     *      File::changeExtension('$base_directory/LOG_1234.log', 'txt');
+     *
+     * @param string $file              The to be changed file
+     * @param string $new_extension     The new file extension
+     * @return bool                     Returns true is all went good, false if not
+     */
+    public function changeExtension(string $file, string $new_extension): bool
+    {
+        /* Get the real path to the directory */
+        $path = self::getPath($file);
+        /* Get the file extension */
+        $extension = self::getExtension($path);
+        /* Add the new extension */
+        $new_path = (!is_null($extension) ? rtrim($path, $extension) : $path . '.') . $new_extension;
+        /* rename the file to reflect the new extension and return the result */
+        return rename($path, $new_path);
+    }
+
+    /**
+     * Rename an existing file
+     *
+     * Example:
+     *      File::rename('$base_directory/myAwesomeFile.md', 'myNotSoAwesomeFile');
+     *
+     * @param string $file              The to-be renamed file
+     * @param string $new_name          The new file name (no extension)
+     * @return bool                     Returns true is all went good, false if not
+     */
+    public static function rename(string $file, string $new_name): bool
+    {
+        /* Get the real path to the directory */
+        $path = self::getPath($file);
+        /* Get the file extension */
+        $extension = self::getExtension($path);
+        /* Get the file name, without the extension */
+        $file_name = basename($oath, $extension ? '.' . $extension : null);
+        /* Get the base path to the file */
+        $base_path = str_replace(basename($path), '', $path);
+        /* Rename the file and return the result */
+        return rename($path, $base_path . $new_name . ($extension ? '.' . $extension : ''));
+    }
+
+    /**
+     * Move an existing file to a new location
+     *
+     * Example:
+     *      File::move('$base_directory/myAwesomeFile.txt', '$some_other_directory');
+     *
+     * @param string $file              The to-be moved file
+     * @param string $new_location      The new directory (no file name should be present)
+     * @return bool                     Returns true is all went good, false if not
+     */
+    public static function move(string $file, string $new_location): bool
+    {
+        /* Get the real path to the original directory */
+        $path = self::getPath($file);
+        /* Get the real path to the new directory and append the filename */
+        $new_path = self::getPath($new_location) . basename($oath);
+        /* move the file to the new location and return the result */
+        return rename($path, $new_path);
     }
 
     /**
