@@ -620,4 +620,13 @@ class ArrayHelper
             array_values($array),
         ];
     }
+
+    /**
+     * @param array $array
+     */
+    public static function lastKey(array $array)
+    {
+        return end(array_keys($array)) ?? null;
+    }
+
 }
