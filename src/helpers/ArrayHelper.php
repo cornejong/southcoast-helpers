@@ -626,7 +626,8 @@ class ArrayHelper
      */
     public static function lastKey(array $array)
     {
-        return end(array_keys($array)) ?? null;
+        $keys = array_keys($array);
+        return end($keys) ?? null;
     }
 
 }
