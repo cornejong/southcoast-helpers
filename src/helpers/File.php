@@ -2,11 +2,15 @@
 
 namespace SouthCoast\Helpers;
 
+use SouthCoast\Helpers\Error\FileError;
+
 class File
 {
     const BASE_DIRECTORY = 'base_directory';
     const DIRECTORY_MAP_IDENTIFIER = '$';
     const NOTHING = '';
+
+    const Minified = 'minify_contents';
 
     /**
      * Holds the path to the base directory
@@ -63,9 +67,9 @@ class File
 
         /* Build the query for the file listing */
         if (is_null($extension)) {
-            $query = $path . (($files_only) ? DIRECTORY_SEPARATOR . '*.*' : '');
+            $query = $path . (($files_only) ? DIRECTORY_SEPARATOR . '*.*' : '*');
         } else {
-            $query = $path . DIRECTORY_SEPARATOR . '*.' . $extension;
+            $query = $path . DIRECTORY_SEPARATOR . '*' . ($extension ? '.' . $extension : '');
         }
 
         /* Get the list */
@@ -164,6 +168,10 @@ class File
      */
     public static function getPath(string $path): string
     {
+        if (!StringHelper::startsWith(DIRECTORY_SEPARATOR, $path) && !StringHelper::startsWith(self::DIRECTORY_MAP_IDENTIFIER, $path)) {
+            $path = '$' . self::BASE_DIRECTORY . DIRECTORY_SEPARATOR . $path;
+        }
+
         /* Check if this is a predefined directory */
         if (self::isKnownDirectory($path)) {
             /* get the real path to the directory */
@@ -183,8 +191,8 @@ class File
      * Returns the real path to the identifier path
      *
      * Example:
-     *      File::getRealPath('cache/some_cached_file.tmp') = '/path/to/cache/directory/some_cached_file.tmp';
-     *      File::getRealPath('cache') = '/path/to/cache/directory';
+     *      File::getRealPath('$cache/some_cached_file.tmp') = '/path/to/cache/directory/some_cached_file.tmp';
+     *      File::getRealPath('$cache') = '/path/to/cache/directory';
      *
      * @param string $path              The file or directory path based on the identifier
      * @return string                   The full actual path to the file or directory
@@ -192,13 +200,14 @@ class File
      */
     public static function getRealPath(string $path): string
     {
+        /* get the identifier */
+        $identifier = self::extractIdentifier($path);
+
         /* Check if this is a known identifier */
         if (!self::isKnownIdentifier($identifier)) {
             throw new FileError(FileError::UNKNOWN_DIRECTORY_IDENTIFIER, $identifier);
         }
 
-        /* get the identifier */
-        $identifier = self::extractIdentifier($path);
         /* Get the directory path from the identifier */
         $directory_path = self::getPathFromIdentifier($identifier);
 
@@ -206,6 +215,11 @@ class File
         $path_array = explode(DIRECTORY_SEPARATOR, $path);
         /* Remove the Identifier */
         array_shift($path_array);
+
+        if (count($path_array) === 1) {
+            return $directory_path . DIRECTORY_SEPARATOR . $path_array[0];
+        }
+
         /* Build and return the new Path from the directory path and the provided path */
         return $directory_path . implode(DIRECTORY_SEPARATOR, $path_array);
     }
@@ -260,7 +274,7 @@ class File
      * Defines a directory by its identifier
      *
      * Example:
-     *      File::defineDirectory('cache', '/the/full/path/to/the/dir');
+     *      File::defineDirectory('$cache', '/the/full/path/to/the/dir');
      *
      * @param string $identifier        The directory identifier
      * @param string $path              The full path to the directory
@@ -339,7 +353,7 @@ class File
 
         /* If it's not a directory */
         if (!Validate::isDirectory($directory)) {
-            return true;
+            return false;
         }
 
         /* Loop over all the items in the directory */
@@ -350,7 +364,7 @@ class File
                 File::recursiveRemoveDirectory($path);
             } else {
                 /* Else, unlink the file */
-                @unlink($path);
+                File::delete($path);
             }
         }
 
@@ -408,15 +422,10 @@ class File
     {
         /* Get the real path to the directory */
         $path = self::getPath($file);
-        /* Explode the file's basename by the '.' */
-        $file_name_array = explode('.', basename($oath));
-        /* Check if there are more than 1 items in the array */
-        if (count($file_name_array) === 1) {
-            /* If there aren't, there is no extension, so return null */
-            return null;
-        }
-        /* return the last item in the exploded array */
-        return $file_name_array[array_key_last($file_name_array)];
+        /* Get the path info */
+        $pathinfo = pathinfo($path);
+        /* Return the filename or null if not present */
+        return $pathinfo['extension'] ?? null;
     }
 
     /**
@@ -442,6 +451,19 @@ class File
     }
 
     /**
+     * @param string $file
+     */
+    public static function getFilename(string $file)
+    {
+        /* Get the real path to the directory */
+        $path = self::getPath($file);
+        /* Get the path info */
+        $pathinfo = pathinfo($path);
+        /* Return the filename */
+        return $pathinfo['filename'];
+    }
+
+    /**
      * Rename an existing file
      *
      * Example:
@@ -457,8 +479,6 @@ class File
         $path = self::getPath($file);
         /* Get the file extension */
         $extension = self::getExtension($path);
-        /* Get the file name, without the extension */
-        $file_name = basename($oath, $extension ? '.' . $extension : null);
         /* Get the base path to the file */
         $base_path = str_replace(basename($path), '', $path);
         /* Rename the file and return the result */
@@ -480,20 +500,143 @@ class File
         /* Get the real path to the original directory */
         $path = self::getPath($file);
         /* Get the real path to the new directory and append the filename */
-        $new_path = self::getPath($new_location) . basename($oath);
+        $new_path = self::getPath($new_location) . basename($path);
         /* move the file to the new location and return the result */
         return rename($path, $new_path);
+    }
+
+    /**
+     * Deletes a file or directory.
+     * Directories will be removed recursively.
+     * All files and sub directories wil also be deleted!
+     *
+     * @param string $path          The to-be deleted path
+     * @return bool                 The status of the deletion
+     * @throws FileError            If: NEITHER_FILE_NOR_DIRECTORY
+     */
+    public static function delete(string $path): bool
+    {
+        /* Get the real path to the directory or file */
+        $path = self::getPath($path);
+
+        if (Validate::isDirectory($path)) {
+            return self::recursiveRemoveDirectory($path);
+        }
+
+        if (Validate::isFile($path)) {
+            return self::deleteFile($path);
+        }
+
+        throw new FileError(FileError::NEITHER_FILE_NOR_DIRECTORY, $path);
+    }
+
+    /**
+     * @param string $path
+     */
+    public static function deleteFile(string $path): bool
+    {
+        /* Get the real path to the directory or file */
+        $path = self::getPath($path);
+
+        /* Check if the path leads to a file */
+        if (!Validate::isFile($path)) {
+            throw new FileError(FileError::NOT_A_FILE, $path);
+        }
+
+        /* unlink the file */
+        return unlink($path);
+    }
+
+    /**
+     * Returns an array that describes the file
+     *
+     * @param string $file      The file that's need to be described
+     * @return array            An array with the file description
+     */
+    public static function describe(string $file): array
+    {
+        /* Get the real path to the file */
+        $path = self::getPath($file);
+
+        if (!Validate::isFile($path)) {
+            throw new FileError(FileError::NOT_A_FILE, $path);
+        }
+
+        return [
+            'filename' => self::getFilename($path),
+            'extension' => self::getExtension($path),
+            'type' => filetype($path) ?? 'unknown',
+            'size' => filesize($path),
+            'last_access' => fileatime($path),
+            'last_change' => filectime($path),
+            'last_modified' => filemtime($path),
+            'permissions' => substr(sprintf('%o', fileperms($path)), -4),
+            'owner' => fileowner($path),
+            'group' => filegroup($path),
+        ];
     }
 
     /**
      * SETTERS
      */
 
-    public static function get($path): string
+    /**
+     * Returns an instantiated stream object with read permissions to the file.
+     *
+     * @param string $file          The to-be read file
+     * @param string $mode          The mode which you want to open the file in
+     * @return Objects\Stream       The instantiated file stream
+     */
+    public static function stream(string $file, $mode = 'r'): Objects\Stream
     {
-        # code...
+        return new Objects\Stream($file, $mode);
+    }
 
-        return '';
+    /**
+     * Returns an instantiated stream object with read permissions to the file.
+     *
+     * @param string $file          The to-be read file
+     * @return Objects\Stream       The instantiated file stream
+     */
+    public static function readStream(string $file): Objects\Stream
+    {
+        return new Objects\Stream($file);
+    }
+
+    /**
+     * Returns an instantiated stream object with write permissions to the file.
+     *
+     * @param string $file          The to-be written file
+     * @param string $mode          The mode which you want to open the file in
+     * @return Objects\Stream       The instantiated file stream
+     */
+    public static function writeStream(string $file, string $mode = 'w+'): Objects\Stream
+    {
+        return new Objects\Stream($file, $mode);
+    }
+
+    /**
+     * @param $path
+     */
+    public static function get($path)
+    {
+        /* Get the real path to the original directory */
+        $path = self::getPath($path);
+        /* Get the contents from the file */
+        $content = file_get_contents($path);
+        /* Return the contents or null if there was an error */
+        return $content === false ? null : $content;
+    }
+
+    /**
+     * @param $path
+     */
+    public static function getAsArray($path, $flags = null, $context = null)
+    {
+        /* Get the real path to the original directory */
+        $path = self::getPath($path);
+        /* Read the file into an array */
+        return file($path, $flags, $context);
     }
 
     /**
@@ -505,6 +648,83 @@ class File
         return Json::parse(self::get($path), ($returnObject) ? false : true);
     }
 
+    /**
+     * Reads the content of a file and parses it as CSV.
+     *
+     * @param string $path                  The path to the csv file
+     * @param bool|array $hasHeaders        If the file contains headers. Or pass an array with the headers.
+     * @param string $delimiter             The delimiter that is used in the file
+     * @param string $enclosure             The enclosing character
+     * @return array                        The parsed csv file
+     */
+    public static function getCsv(string $path, $hasHeaders = true, string $delimiter = ',', string $enclosure = null)
+    {
+        $content = File::getAsArray($path);
+
+        if (is_array($hasHeaders)) {
+            $headers = $hasHeaders;
+            $hasHeaders = true;
+        }
+
+        if (is_bool($hasHeaders) && $hasHeaders) {
+            $headers = self::parseCsvLine(array_shift($content), $delimiter, $enclosure);
+        }
+
+        $array = [];
+
+        foreach ($content as $line) {
+            if ($hasHeaders) {
+                $array[] = ArrayHelper::combineAndFill($headers, self::parseCsvLine($line, $delimiter, $enclosure));
+            }
+
+            if (!$hasHeaders) {
+                $array[] = self::parseCsvLine($line, $delimiter, $enclosure);
+            }
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param string $line
+     * @param string $delimiter
+     * @param string $enclosure
+     */
+    public static function parseCsvLine(string $line, string $delimiter = ',', string $enclosure = null): array
+    {
+        /* Explode the line by the delimiter */
+        $line_array = explode($delimiter, $line);
+        /* Loop over all the fields in the line */
+        foreach ($line_array as &$value) {
+            if ($enclosure !== null || $enclosure !== '')
+            /* Trim the enclosure  */ {
+                $value = trim($value, $enclosure);
+            }
+
+            if (Number::isFloat($value)) {
+                $value = (float) $value;
+            }
+
+            if (Number::isInteger($value)) {
+                $value = (int) $value;
+            }
+
+            if (strtolower($value) === 'true') {
+                $value = true;
+            }
+
+            if (strtolower($value) === 'false') {
+                $value = false;
+            }
+
+            if (strtolower($value) === 'null') {
+                $value = null;
+            }
+        }
+
+        return $line_array;
+    }
+
     public static function getBasePath()
     {
         return self::getPathFromIdentifier(self::BASE_DIRECTORY);
@@ -513,42 +733,4 @@ class File
     /**
      * GETTERS
      */
-}
-
-class FileError extends \Error
-{
-    const NOT_VALID_PATH = [
-        'message' => 'The provided path is not valid! Provided: ',
-        'code' => 999,
-    ];
-
-    const NOT_A_DIRECTORY = [
-        'message' => 'The provided path is not a directory! Provided: ',
-        'code' => 888,
-    ];
-
-    const IDENTIFIER_ALREADY_IN_USE = [
-        'message' => 'The provided identifier is already in use! Provided: ',
-        'code' => 777,
-    ];
-
-    const UNKNOWN_DIRECTORY_IDENTIFIER = [
-        'message' => 'The provided identifier is unknown! Provided: ',
-        'code' => 770,
-    ];
-
-    /**
-     * @param array $error
-     * @param $extra
-     */
-    public function __construct(array $error, $extra = null)
-    {
-        extract($error);
-
-        if (!empty($extra)) {
-            $message .= "\n" . Json::prettyEncode($extra);
-        }
-
-        parent::__construct($message, $code);
-    }
 }

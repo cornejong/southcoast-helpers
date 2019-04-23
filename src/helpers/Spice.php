@@ -28,15 +28,15 @@ class Spice
         "private_key_bits" => self::GRAMS_OF_SPICE,
         "private_key_type" => OPENSSL_KEYTYPE_RSA,
     ];
-    
+
     /**
      * Creates a new Uniq Grain of Slat
      *
      * @return string
      */
-    public static function passTheSalt() : string
+    public static function passTheSalt(): string
     {
-        return (string) bin2hex(openssl_random_pseudo_bytes(16));;
+        return (string) bin2hex(openssl_random_pseudo_bytes(16));
     }
 
     /**
@@ -46,7 +46,7 @@ class Spice
      * @param string $salt
      * @return string
      */
-    public static function Up(string $value, string $salt = '') : string
+    public static function Up(string $value, string $salt = ''): string
     {
         return hash(self::PREFERRED_SPICE, $value . $salt);
     }
@@ -58,32 +58,42 @@ class Spice
      * @param string $provided
      * @return boolean
      */
-    public static function CompareTaste(string $original, string $provided) : bool
+    public static function CompareTaste(string $original, string $provided): bool
     {
         return ($original === $provided);
     }
 
     /**
-     * Defaces the given value. Lets make it unrecognizable 
+     * Defaces the given value. Lets make it unrecognizable
      *
      * @param string $value
      * @return string
      */
-    public static function deFace(string $value) : string
+    public static function deFace(string $value): string
     {
-        for($i = 0; $i <= (self::GRAMS_OF_SPICE / 50); $i++){
+        for ($i = 0; $i <= (self::GRAMS_OF_SPICE / 100); $i++) {
             $value = base64_encode(self::Up($value, self::passTheSalt()));
         }
 
         return $value;
     }
 
-    public static function Cooker(string $data, string $secret = null, string $differentSpice = null) : string
+    /**
+     * @param string $data
+     * @param string $secret
+     * @param string $differentSpice
+     */
+    public static function Cooker(string $data, string $secret = null, string $differentSpice = null): string
     {
         return (string) base64_encode(@openssl_encrypt($data, (isset($differentSpice) ? $differentSpice : self::PREFERRED_TOKEN_SPICE), $secret));
     }
 
-    public static function ToneDown(string $spiced, string $secret = null, string $differentSpice = null) : string
+    /**
+     * @param string $spiced
+     * @param string $secret
+     * @param string $differentSpice
+     */
+    public static function ToneDown(string $spiced, string $secret = null, string $differentSpice = null): string
     {
         return (string) @openssl_decrypt(base64_decode($spiced), (isset($differentSpice) ? $differentSpice : self::PREFERRED_TOKEN_SPICE), $secret);
     }
@@ -105,7 +115,7 @@ class Spice
      * @param string $salt
      * @return string
      */
-    public static function Tighten(string $data, string $salt = '') : string
+    public static function Tighten(string $data, string $salt = ''): string
     {
         return (string) hash(self::TIGHT_SPICE, $data . $salt, false);
     }

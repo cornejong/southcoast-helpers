@@ -112,4 +112,34 @@ class StringHelper
 
         return $result ?? $text;
     }
+
+    /**
+     * Converts a stringified value into its correct type
+     *
+     * @param string $string
+     */
+    public static function getRealType(string $string)
+    {
+        if (Number::isFloat($string)) {
+            return (float) Number::convert2Float($string);
+        }
+
+        if (Number::isInteger($string)) {
+            return (int) Number::convert2Integer($string);
+        }
+
+        if (strtolower($string) === 'true') {
+            return true;
+        }
+
+        if (strtolower($string) === 'false') {
+            return false;
+        }
+
+        if (strtolower($string) === 'null') {
+            return null;
+        }
+
+        return $string;
+    }
 }

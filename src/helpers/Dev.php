@@ -8,28 +8,72 @@ use \Exception;
 class Dev
 {
     /* CONSOLE COLOURS */
+    /**
+     * @var array
+     */
     private static $foreground_colors = [];
+    /**
+     * @var array
+     */
     private static $background_colors = [];
 
     /* ENVIROMENT */
+    /**
+     * @var mixed
+     */
     private static $ENV_DEV;
+    /**
+     * @var mixed
+     */
     private static $ENV_CONSOLE;
 
     /* TEMP DIRECOTRY */
+    /**
+     * @var mixed
+     */
     private static $temp_directory;
+    /**
+     * @var string
+     */
     private static $temp_extention = 'temp';
 
     /* LOG DATA TO FILE */
+    /**
+     * @var mixed
+     */
     private static $LOG_TO_FILE = false;
+    /**
+     * @var mixed
+     */
     private static $LOGBOOK_DIRECTORY;
+    /**
+     * @var string
+     */
     private static $log_file_name = '';
 
     /* LOG DATA TO METHOD */
+    /**
+     * @var mixed
+     */
     private static $LOG_TO_FUNCTION = false;
+    /**
+     * @var mixed
+     */
     private static $LOG_FUNCTION_CALLBACK;
+    /**
+     * @var mixed
+     */
     private static $LOG_FUNCTION_PARAMETERS;
+    /**
+     * @var mixed
+     */
     private static $runtime_id;
 
+    /**
+     * @param $message
+     * @param $die
+     * @return null
+     */
     public static function log($message, $die = false)
     {
         if (self::$LOG_TO_FILE) {
@@ -104,15 +148,22 @@ class Dev
         return (self::$ENV_DEV || self::$ENV_CONSOLE) ? true : false;
     }
 
+    /**
+     * @param bool $isDev
+     */
     public static function setDev(bool $isDev)
     {
         self::$ENV_DEV = $isDev;
     }
 
+    /**
+     * @param string $path
+     * @param null $file_name
+     */
     public static function logToFile(string $path = null, $file_name = 'LOG')
     {
         if (!is_null($path) && !file_exists($path)) {
-            throw new \Exception('No Valid direcotry provided! Provided: ' . $path, 1);
+            throw new \Exception('No Valid directory provided! Provided: ' . $path, 1);
         } elseif (is_null($path)) {
             $path = self::getTempDirectory();
         }
@@ -122,6 +173,10 @@ class Dev
         self::setLogbookDirectory($path);
     }
 
+    /**
+     * @param array $function
+     * @param $parameters
+     */
     public static function logToFunction(array $function, ...$parameters)
     {
         if (!method_exists(...$function)) {
@@ -134,6 +189,9 @@ class Dev
         self::$runtime_id = Identifier::newGuid();
     }
 
+    /**
+     * @param string $path
+     */
     public static function setTempDirectory(string $path)
     {
         if (!file_exists($path)) {
@@ -143,6 +201,9 @@ class Dev
         self::$temp_directory = $path;
     }
 
+    /**
+     * @param string $path
+     */
     public static function setLogbookDirectory(string $path)
     {
         if (!file_exists($path)) {
@@ -155,17 +216,25 @@ class Dev
     public static function getTempDirectory()
     {
         if (!isset(self::$temp_directory)) {
-            throw new \Exception('No Temporary direcotry provided!', 1);
+            throw new \Exception('No Temporary directory provided!', 1);
         }
 
         return self::$temp_directory;
     }
 
+    /**
+     * @param string $ext
+     */
     public static function setTempExtention(string $ext)
     {
         self::$temp_extention = $ext;
     }
 
+    /**
+     * @param $data
+     * @param bool $die
+     * @return null
+     */
     public static function logJson($data, bool $die = false): void
     {
         if (!self::isDev()) {
@@ -175,6 +244,10 @@ class Dev
         self::log(Json::prettyEncode($data), $die);
     }
 
+    /**
+     * @param $data
+     * @param bool $die
+     */
     public static function varLog($data, bool $die = false)
     {
         ob_start();
@@ -184,6 +257,10 @@ class Dev
         self::log($result, $die);
     }
 
+    /**
+     * @param $message
+     * @param bool $die
+     */
     public static function rainbowLog($message, bool $die = false)
     {
         $string = '';
@@ -195,6 +272,12 @@ class Dev
         self::log($string, $die);
     }
 
+    /**
+     * @param string $name
+     * @param $data
+     * @param $jsonEncode
+     * @param falsebool $append
+     */
     public static function store(string $name, $data, $jsonEncode = false, bool $append = false)
     {
         if (!isset(self::$temp_directory)) {
@@ -204,6 +287,10 @@ class Dev
         return file_put_contents(self::$temp_directory . DIRECTORY_SEPARATOR . $name . '.' . (($jsonEncode) ? 'json' : self::$temp_extention), ($jsonEncode) ? Json::prettyEncode($data) : $data, ($append) ? FILE_APPEND : null);
     }
 
+    /**
+     * @param bool $die
+     * @param falsebool $asArray
+     */
     public static function trace(bool $die = false, bool $asArray = false)
     {
         /* Check if we need to return an array with the trace */
@@ -253,6 +340,12 @@ class Dev
         return array_keys(self::$background_colors)[rand(0, count(self::$background_colors) - 1)];
     }
 
+    /**
+     * @param string $string
+     * @param string $foreground_color
+     * @param nullstring $background_color
+     * @return mixed
+     */
     public static function get_colored_string(string $string, string $foreground_color = null, string $background_color = null)
     {
         if (!isset(self::$background_colors) || self::$foreground_colors) {
@@ -316,15 +409,14 @@ class Dev
         self::$background_colors['light_gray'] = '47';
     }
 
-
     public static function registerCustomExceptionHandler()
     {
-        $handler = function($th) {
-            if($th instanceof \Exception) {
+        $handler = function ($th) {
+            if ($th instanceof \Exception) {
                 Dev::log('X EXCEPTION! == ' . $th->getMessage());
                 Dev::log($th->getTraceAsString());
                 throw new \Exception($th->getMessage(), $th->getCode());
-            } elseif($th instanceof \Error) {
+            } elseif ($th instanceof \Error) {
                 Dev::log('X ERROR! == ' . $th->getMessage());
                 Dev::log($th->getTraceAsString());
                 throw new \Error($th->getMessage(), $th->getCode());
@@ -336,7 +428,7 @@ class Dev
             }
         };
 
-        set_exception_handler($handler); 
+        set_exception_handler($handler);
 
         set_error_handler($handler);
     }

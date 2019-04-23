@@ -1,9 +1,19 @@
 <?php
 
-File::setBaseDirectory(TEMP_FOLDER);
-File::defineDirectory('dir_identifier', '/Path/To/Dir');
+error_reporting(E_ALL);
+ini_set('display_errors', true);
 
-File::list();
+require realpath('../vendor/autoload.php');
+
+use SouthCoast\Helpers\File;
+
+File::setBaseDirectory(__DIR__);
+// File::defineDirectory('dir_identifier', '/Path/To/Dir');
+
+var_dump(File::getCsv('test.csv', false, ';'));
+
+die();
+
 File::list('$dir_identifier');
 
 File::list(File::BASE_DIRECTORY, 'txt');
@@ -20,16 +30,28 @@ File::getJson('thisname', true);
 
 File::saveCsv('thiscsv', $data, true || []);
 
-File::getCsv('thiscsv', true);
+File::getCsv('thiscsv', false);
 
 /* Open a Write Stream to a file */
 $stream = File::writeStream('anothername.txt');
 /* Loop over all lines in a file */
-foreach (File::readStream('thisname') as $line) {
+foreach (File::getAsArray('thisname.txt') as $line) {
     $stream->write($line);
 }
 /* Close the stream */
 $stream->close();
+
+/* Open a Write Stream to a file */
+$stream = File::writeStream('anothername.txt');
+
+while ($stream->hasContent()) {
+    /* Optionally you can pass the amount of bites */
+    processContent($stream->read());
+}
+
+/* Close the stream, or just unset it */
+$stream->close();
+unset($stream);
 
 /* Move a file to another directory */
 File::move('$dir_identifier/thisname.tmp', '$another_defined_dir');
@@ -37,7 +59,7 @@ File::move('$dir_identifier/thisname.tmp', '$another_defined_dir');
 File::rename('$dir_identifier/thisname.tmp', 'thisnewname');
 
 /* Get File Extention */
-File::getExtention('thisname');
+File::getExtension('thisname.txt');
 /* Get mime type */
 File::getMimeType('thisname');
 

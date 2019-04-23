@@ -316,7 +316,7 @@ class ArrayHelper
      * @param string $query
      * @param array $array
      * @param bool $subtractQuery
-     * @param truebool $doRebuild
+     * @param bool $doRebuild
      */
     public static function get(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
     {
@@ -326,7 +326,7 @@ class ArrayHelper
         $tmp = [];
 
         foreach ($flat as $key => $value) {
-            if (preg_match($pattern, $key, $matches)) {
+            if (preg_match($pattern, $key)) {
                 if ($subtractQuery) {
                     $newKey = str_replace(self::buildFlatQueryString($query), '', $key);
 
@@ -348,11 +348,9 @@ class ArrayHelper
         if (count($tmp) == 1) {
             $key = array_keys($tmp)[0];
             $rebuild = $tmp[$key];
-        } else {
-            $rebuild = self::rebuildArray($tmp);
         }
 
-        return ($doRebuild) ? $rebuild : $tmp;
+        return $doRebuild ? self::rebuildArray($tmp) : $tmp;
     }
 
     /**
@@ -431,7 +429,7 @@ class ArrayHelper
         foreach (explode('.', $query) as $index => $i) {
             if (is_numeric($i)) {
                 $i = self::FLAT_QUERY_EXPRESSION_NUMERIC_OPEN . $i . self::FLAT_QUERY_EXPRESSION_NUMERIC_CLOSE;
-            } elseif ($i == '?') {
+            } elseif ($i === '?' || $i === '*') {
                 $i = self::FLAT_QUERY_EXPRESSION_WILDCARD;
             } else {
                 $i = self::FLAT_QUERY_EXPRESSION_STRING_OPEN . $i . self::FLAT_QUERY_EXPRESSION_STRING_CLOSE;
@@ -443,6 +441,29 @@ class ArrayHelper
         $expression .= self::FLAT_QUERY_EXPRESSION_CLOSER;
 
         return $expression;
+    }
+
+    /**
+     * @param string $query
+     * @return string
+     */
+    public static function prepareQuery(string $query): string
+    {
+        $query_array = explode('.', $query);
+        $tmp = '';
+        foreach ($query_array as $index => $value) {
+            if (is_numeric($value)) {
+                $tmp .= '[' . $value . ']';
+            } else {
+                $tmp .= $value;
+            }
+
+            if ($index !== self::lastKey($query_array)) {
+                $tmp .= '.';
+            }
+        }
+
+        return $tmp;
     }
 
     /**
@@ -474,7 +495,7 @@ class ArrayHelper
 
     /**
      * indexes the provided Array by the index
-     * Additionaliy you van provide a callable function
+     * Additionally you van provide a callable function
      *
      * @param array $array
      * @param string $index
@@ -498,7 +519,7 @@ class ArrayHelper
                 if ($skipIfMissing) {
                     continue;
                 } else {
-                    throw new \Exception('Specified Index not pressent in array element with key: ' . $index, 1);
+                    throw new \Exception('Specified Index not present in array element with key: ' . $index, 1);
                 }
             }
 
@@ -514,26 +535,40 @@ class ArrayHelper
 
     /**
      * Maps the values of the $array to new keys
-     * Adds support for multidimentional arrays
+     * Adds support for multidimensional arrays via dot notation
      *
      * $map = [
      *      The KEY is the to be used key for the Array
      *      'field' is the value origin
-     *      'Name' => ['field' => 'name'],
+     *      'New_Name' => ['field' => 'old_name'],
+     *
      *      Add 'value' to add custom value or value mutation
-     *      'Email' => ['field' => 'email', 'value' => 'Some Other Value'],
-     *      Add '.' seperators for sub objects
+     *      'Email' => ['value' => 'Some Other Value'],
+     *      Or just add the value
+     *      'Email' => 'Some Other Value
+     *
+     *      Add '.' separators for sub objects
      *      'Email.primary' => ['field' => 'email'],
-     *      Use '[0]' for arrays
-     *      'Addresses.[0].street' => ['field => 'address_1_line_1'],
-     *      Get a value from a multidimentional source
+     *
+     *      Use '0' for arrays
+     *      'Addresses.0.street' => ['field => 'address_1_line_1'],
+     *
+     *      Get a value from a multidimensional source
      *      'isDefault' => ['field' => 'meta.system.default'],
+     *
+     *      Add the 'or' field to supply a value that will used if the value from the original array is not found or null
+     *      'automated' => ['field' => 'system.automated', 'or' => 'nope, not automated']
+     *
+     *      Use the 'add' field to specify if this field should be added
+     *      'someAwesomeField' => ['field' => 'getMyValue', 'add' => false] // Wont be added
+     *      'someAwesomeField' => ['field' => 'getMyValue', 'add' => true] // Will be added
+     *
+     *      Add an alternative field to the mapping if the original field is missing or returned null
+     *      'arbitraryKey' => ['field => 'getItFromHere', 'alt_field' => 'or_from_here', 'or' => 'a default value']
      *
      * @param array $map
      * @param array $array
      * @return array
-     *
-     * @todo add checks for keys and strict null allowing
      */
     public static function map(array $map, array $array)
     {
@@ -542,16 +577,57 @@ class ArrayHelper
 
         /* Create the temp array */
         $tmp = [];
+
         /* Loop over all the values in the mapping */
         foreach ($map as $key => $item) {
+            if (!is_array($item)) {
+                $tmp[$key] = $item;
+            }
+
+            /* Check if there was an 'add' value provided in the mapping */
+            if (array_key_exists('add', $item)) {
+                /* If its anything but true */
+                if ($item['add'] !== true) {
+                    /* Continue onto the next one */
+                    continue;
+                }
+
+                /* else just add the field */
+            }
+
             /* Check if the field value is a string */
             if (!is_string($item['field'])) {
                 /* if not, throw an Exception */
-                throw new \Exception('The field value should be a string! Key: \'' . $key . '\'', 1);
+                throw new \Exception('The field value should be a string! Provided key: \'' . $key . '\'', 1);
             }
-            /* Add the value to the array, if there was a value key provided use that value. or get it from the array */
-            $tmp[$key] = (array_key_exists('value', $item)) ? $item['value'] : self::get($item['field'], $array);
+
+            /* Check if there was a value provided in the mapping */
+            if (array_key_exists('value', $item)) {
+                /* Add that value to the array */
+                $tmp[$key] = $item['value'];
+                /* And continue */
+                continue;
+            }
+
+            /* Get the value from the array */
+            $value = self::get($item['field'], $array);
+
+            /* Check if we could find the field and its value, Check if there was an 'alt_field' value provided in the mapping */
+            if ($value === null && array_key_exists('alt_field', $item) && !empty($item['alt_field'])) {
+                /* Get the value from that field instead */
+                $value = self::get($item['alt_field'], $array);
+            }
+
+            /* Check if there was an or field specified and the current value is null */
+            if ($value === null && array_key_exists('or', $item)) {
+                /* Use the value of 'or' as the new value */
+                $value = $item['or'];
+            }
+
+            /* Finally, add the value to the tmp array */
+            $tmp[$key] = $value;
         }
+
         /* Return the rebuild array */
         return self::rebuildArray($tmp);
     }
@@ -593,10 +669,10 @@ class ArrayHelper
      * @param $array        The to-be cleaned array
      * @return mixed        The cleaned array
      */
-    public static function clean(array &$array): array
+    public static function clean(array $array): array
     {
         /* loop overt all the values in the array */
-        array_walk_recursive($array, function (&$item, $key) {
+        array_walk_recursive($array, function (&$item) {
             /* Check if the value is a string */
             if (is_string($item)) {
                 /* Clean the string */
@@ -626,8 +702,15 @@ class ArrayHelper
      */
     public static function lastKey(array $array)
     {
-        $keys = array_keys($array);
-        return end($keys) ?? null;
+        return array_pop(array_keys($array)) ?? null;
+    }
+
+    /**
+     * @param array $array
+     */
+    public static function lastValue(array $array)
+    {
+        return array_pop($array);
     }
 
 }
