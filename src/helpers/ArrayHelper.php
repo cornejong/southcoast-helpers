@@ -345,9 +345,8 @@ class ArrayHelper
             return null;
         }
 
-        if (count($tmp) == 1) {
-            $key = array_keys($tmp)[0];
-            $rebuild = $tmp[$key];
+        if (count($tmp) === 1) {
+            return array_shift($tmp);
         }
 
         return $doRebuild ? self::rebuildArray($tmp) : $tmp;
