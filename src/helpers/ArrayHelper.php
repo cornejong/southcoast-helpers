@@ -317,6 +317,7 @@ class ArrayHelper
      * @param array $array
      * @param bool $subtractQuery
      * @param bool $doRebuild
+     * @return string|array
      */
     public static function get(string $query, array $array, bool $subtractQuery = true, bool $doRebuild = true)
     {
@@ -357,17 +358,19 @@ class ArrayHelper
      * @param $value
      * @param array $data
      */
-    public static function add(string $index, $value, array $data)
+    public static function add(string $index, $value, array &$data)
     {
-        if (is_array($value)) {
+        $data = self::flatten($data);
+
+        if (is_array($value) || is_object($value)) {
             $tmp = self::flatten($value, $index);
         } else {
             $tmp = [$index => $value];
         }
 
-        $merged = array_merge($data, $tmp);
+        $data = self::rebuildArray(array_merge($data, $tmp));
 
-        return self::rebuildArray($tmp);
+        return $data;
     }
 
     /**

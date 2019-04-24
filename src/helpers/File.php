@@ -659,6 +659,9 @@ class File
      */
     public static function getCsv(string $path, $hasHeaders = true, string $delimiter = ',', string $enclosure = null)
     {
+        /* Get the real path to the original directory */
+        $path = self::getPath($path);
+
         $content = File::getAsArray($path);
 
         if (is_array($hasHeaders)) {
@@ -728,6 +731,32 @@ class File
     public static function getBasePath()
     {
         return self::getPathFromIdentifier(self::BASE_DIRECTORY);
+    }
+
+    /**
+     * @param string $path
+     * @param string $directory
+     */
+    public function makeDirectory(string $path, string $directory)
+    {
+        /* Get the real path to the original directory */
+        $path = self::getPath($path);
+        /* Format the new path */
+        $directory_path = $path . DIRECTORY_SEPARATOR . $directory;
+        /* Create the directory */
+        mkdir($directory_path);
+        /* Check if it now is there and return the result */
+        return Validate::path($directory_path) && Validate::isDirectory($directory_path) ? true : false;
+    }
+
+    /**
+     * @param $path
+     * @param $structure
+     */
+    public function makeDirectoryStructure(string $path, array $structure)
+    {
+        $directory = ArrayHelper::firstKey($structure);
+
     }
 
     /**
